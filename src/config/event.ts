@@ -2,8 +2,11 @@
 // EDIT EVENT DETAILS HERE — all copy & links live in this file.
 // ============================================================
 
-/** Replace "#" with the real registration link when available. */
-export const REGISTRATION_URL = "#";
+/** Registration route or external URL. */
+export const REGISTRATION_URL: string = "/register";
+
+/** Toggle whether registration is currently open. */
+export const REGISTRATION_OPEN = true;
 
 export const EVENT = {
   name: "Google Cloud Study Jams",
@@ -36,7 +39,7 @@ export const FAQS = [
 ];
 
 export const SOCIALS = [
-  { label: "Instagram", href: "#" },
-  { label: "LinkedIn", href: "#" },
-  { label: "GDG Community", href: "#" },
+  { label: "Instagram", href: "https://www.instagram.com/gdgc.iare/" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/company/gdgciare/home/" },
+  { label: "GDG Community", href: "https://gdg.community.dev/gdg-on-campus-institute-of-aeronautical-engineering-hyderabad-india/" },
 ];

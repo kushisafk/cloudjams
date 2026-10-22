@@ -15,25 +15,25 @@ function Stage({ chapter, local, progress }: { chapter: number; local: number; p
     <div className="crt scanlines relative aspect-[4/3] w-full overflow-hidden border-2 border-cyan/60 bg-void">
       <div className="absolute inset-x-0 bottom-0 h-1/2 overflow-hidden" aria-hidden="true">
         <div
-          className="neon-floor absolute -inset-x-1/2 top-0 h-[200%] transition-transform duration-500"
+          className="neon-floor absolute -inset-x-1/2 top-0 h-[200%] transition-transform duration-500 ease-out"
           style={{ transform: `perspective(420px) rotateX(${62 - chapter * 8}deg)` }}
         />
       </div>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,color-mix(in_oklab,var(--violet)_30%,transparent),transparent_60%)]" aria-hidden="true" />
 
       {/* Scene 1: boot */}
-      <div className="absolute inset-0 p-6 font-mono text-xs text-cyan transition-all duration-500 sm:text-sm" style={{ opacity: chapter === 0 ? 1 : 0, transform: `translateY(${chapter === 0 ? 0 : -30}px)` }}>
+      <div className="absolute inset-0 p-6 font-mono text-xs text-cyan transition-all duration-500 ease-out sm:text-sm" style={{ opacity: chapter === 0 ? 1 : 0, transform: `translateY(${chapter === 0 ? 0 : -24}px)` }}>
         {BOOT.map((l, i) => (
-          <p key={l} style={{ opacity: local * BOOT.length > i ? 1 : 0.12 }} className="transition-opacity">{l}</p>
+          <p key={l} style={{ opacity: local * BOOT.length > i ? 1 : 0.12 }} className="transition-opacity duration-300">{l}</p>
         ))}
         <PixelCloud assemble={local} className="absolute bottom-[22%] right-[8%] w-1/3 text-cyan drop-shadow-[0_0_12px_var(--cyan)]" />
       </div>
 
       {/* Scene 2: dashboard nodes */}
-      <div className="absolute inset-0 transition-all duration-500" style={{ opacity: chapter === 1 ? 1 : 0, transform: `scale(${chapter === 1 ? 1 : 0.9})` }}>
+      <div className="absolute inset-0 transition-all duration-500 ease-out" style={{ opacity: chapter === 1 ? 1 : 0, transform: `scale(${chapter === 1 ? 1 : 0.9})` }}>
         <svg viewBox="0 0 400 300" className="absolute inset-0 size-full" aria-hidden="true">
           {[[200, 110, 90, 60], [200, 110, 310, 70], [200, 110, 120, 200], [200, 110, 300, 190], [90, 60, 120, 200], [310, 70, 300, 190]].map(([a, b, c, d], i) => (
-            <line key={i} x1={a} y1={b} x2={c} y2={d} stroke="var(--violet)" strokeWidth="1.5" strokeDasharray="4 4" style={{ opacity: local > i / 6 ? 0.9 : 0.1 }} />
+            <line key={i} x1={a} y1={b} x2={c} y2={d} stroke="var(--violet)" strokeWidth="1.5" strokeDasharray="4 4" className="transition-opacity duration-300" style={{ opacity: local > i / 6 ? 0.9 : 0.1 }} />
           ))}
           {[[90, 60], [310, 70], [120, 200], [300, 190]].map(([x, y], i) => (
             <rect key={i} x={(x ?? 0) - 7} y={(y ?? 0) - 7} width="14" height="14" fill={i % 2 ? "var(--magenta)" : "var(--cyan)"} />
@@ -43,7 +43,7 @@ function Stage({ chapter, local, progress }: { chapter: number; local: number; p
         {["COMPUTE", "STORAGE", "NETWORK"].map((t, i) => (
           <div
             key={t}
-            className="absolute border border-cyan/60 bg-void/80 px-2 py-1 font-pixel text-[0.5rem] text-cyan transition-transform duration-500"
+            className="absolute border border-cyan/60 bg-void/80 px-2 py-1 font-pixel text-[0.5rem] text-cyan transition-transform duration-500 ease-out"
             style={{ left: `${8 + i * 30}%`, bottom: "10%", transform: `translateY(${local > i * 0.25 ? 0 : 60}px)` }}
           >
             {t} <span className="text-magenta">●</span>
@@ -52,7 +52,7 @@ function Stage({ chapter, local, progress }: { chapter: number; local: number; p
       </div>
 
       {/* Scene 3: portal + badge */}
-      <div className="absolute inset-0 grid place-items-center transition-all duration-700" style={{ opacity: chapter === 2 ? 1 : 0, transform: `scale(${chapter === 2 ? 1 : 0.6})` }}>
+      <div className="absolute inset-0 grid place-items-center transition-all duration-500 ease-out" style={{ opacity: chapter === 2 ? 1 : 0, transform: `scale(${chapter === 2 ? 0.85 + local * 0.15 : 0.6})` }}>
         <div className="relative grid size-48 place-items-center sm:size-56">
           <div className="absolute inset-0 animate-spin-slow rounded-full border-4 border-dashed border-violet shadow-[0_0_40px_var(--violet)]" />
           <div className="absolute inset-5 rounded-full border-2 border-cyan shadow-[0_0_30px_var(--cyan)]" />
@@ -91,22 +91,54 @@ export function ScrollStory() {
   useEffect(() => {
     if (!pinned) return;
     let raf = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const el = ref.current;
-        if (!el) return;
-        const r = el.getBoundingClientRect();
-        setProgress(Math.min(1, Math.max(0, -r.top / (r.height - window.innerHeight))));
-      });
+    let current = 0;
+    let target = 0;
+    let ticking = false;
+
+    const computeTarget = () => {
+      const el = ref.current;
+      if (!el) return 0;
+      const r = el.getBoundingClientRect();
+      const scrollable = Math.max(1, r.height - window.innerHeight);
+      return Math.min(1, Math.max(0, -r.top / scrollable));
     };
-    onScroll();
+
+    const tick = () => {
+      const diff = target - current;
+      if (Math.abs(diff) > 0.0005) {
+        current += diff * 0.14;
+        setProgress(current);
+        raf = requestAnimationFrame(tick);
+      } else {
+        current = target;
+        setProgress(current);
+        ticking = false;
+      }
+    };
+
+    const onScroll = () => {
+      target = computeTarget();
+      if (!ticking) {
+        ticking = true;
+        raf = requestAnimationFrame(tick);
+      }
+    };
+
+    target = computeTarget();
+    current = target;
+    setProgress(current);
+
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, [pinned]);
 
   const chapter = Math.min(2, Math.floor(progress * 3));
-  const local = Math.min(1, progress * 3 - chapter);
+  const local = Math.min(1, Math.max(0, progress * 3 - chapter));
 
   const header = (
     <div>
@@ -135,19 +167,29 @@ export function ScrollStory() {
   }
 
   return (
-    <section ref={ref} id="story" className="relative h-[280vh]">
+    <section ref={ref} id="story" className="relative h-[320vh]">
       <div className="sticky top-0 flex h-screen items-center overflow-hidden">
-        <div className="absolute inset-0 starfield opacity-60" style={{ transform: `translateY(${progress * -80}px)` }} aria-hidden="true" />
+        <div className="absolute inset-0 starfield opacity-65" style={{ transform: `translateY(${progress * -90}px)` }} aria-hidden="true" />
+        <div className="absolute inset-0 cyber-grid opacity-35 [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_80%)]" aria-hidden="true" />
+        <div className="pointer-events-none absolute -left-32 top-1/4 size-[420px] rounded-full bg-cyan/10 blur-[130px]" aria-hidden="true" />
+        <div className="pointer-events-none absolute -right-32 bottom-1/4 size-[460px] rounded-full bg-violet/15 blur-[140px]" aria-hidden="true" />
         <div className="relative mx-auto grid w-full max-w-6xl grid-cols-[0.9fr_1.3fr] items-center gap-14 px-8">
           <div className="space-y-8">
             {header}
-            <ol className="relative space-y-3 border-l-2 border-muted pl-6">
-              <span className="absolute -left-[2px] top-0 w-[2px] bg-cyan shadow-[0_0_10px_var(--cyan)]" style={{ height: `${progress * 100}%` }} aria-hidden="true" />
+            <ol className="relative space-y-4 border-l-2 border-muted pl-6">
+              <span
+                className="absolute -left-[2px] top-0 w-[2px] bg-cyan shadow-[0_0_10px_var(--cyan)]"
+                style={{ height: `${progress * 100}%` }}
+                aria-hidden="true"
+              />
               {CHAPTERS.map((s, i) => (
-                <li key={s.key} className={`transition-all duration-300 ${i === chapter ? "translate-x-1" : "opacity-40"}`}>
+                <li
+                  key={s.key}
+                  className={`transition-all duration-300 ease-out ${i === chapter ? "translate-x-1.5" : "opacity-40"}`}
+                >
                   <p className="font-pixel text-[0.55rem] text-cyan">{i < chapter ? "■ CLEARED" : i === chapter ? "▶ NOW PLAYING" : "□ LOCKED"}</p>
                   <p className="mt-1 font-display text-2xl font-black uppercase">{s.title}</p>
-                  <p className={`mt-1 max-w-sm text-muted-foreground transition-all ${i === chapter ? "max-h-24 opacity-100" : "max-h-0 overflow-hidden opacity-0"}`}>{s.body}</p>
+                  <p className={`mt-1 max-w-sm text-muted-foreground transition-all duration-300 ease-out ${i === chapter ? "max-h-24 opacity-100" : "max-h-0 overflow-hidden opacity-0"}`}>{s.body}</p>
                 </li>
               ))}
             </ol>

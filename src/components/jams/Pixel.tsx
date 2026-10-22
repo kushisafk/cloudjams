@@ -27,13 +27,24 @@ export function PixelCloud({ className = "", fill = "currentColor", assemble = 1
   );
 }
 
-export function GlowMark({ className = "" }: { className?: string }) {
+export function GlowMark({ className = "size-10" }: { className?: string }) {
   return (
-    <span className={`relative inline-grid grid-cols-3 gap-[2px] ${className}`} aria-hidden="true">
-      {[0, 1, 0, 1, 1, 1, 1, 0, 1].map((on, i) => (
-        <span key={i} className={`size-1.5 ${on ? (i === 4 ? "bg-magenta" : "bg-cyan") : "bg-transparent"} ${on ? "shadow-[0_0_6px_var(--cyan)]" : ""}`} />
-      ))}
-    </span>
+    <img
+      src="/logo.png"
+      alt="GDG on Campus IARE logo"
+      className={`inline-block shrink-0 object-contain ${className}`}
+    />
+  );
+}
+
+export function PixelRunner({ className = "size-8" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 12 12" className={`pixelated ${className}`} aria-hidden="true">
+      <rect x="4" y="1" width="4" height="3" fill="var(--cyan)" />
+      <rect x="3" y="4" width="6" height="4" fill="var(--magenta)" />
+      <rect x="2" y="8" width="3" height="3" fill="var(--violet)" />
+      <rect x="7" y="8" width="3" height="3" fill="var(--violet)" />
+    </svg>
   );
 }
 
