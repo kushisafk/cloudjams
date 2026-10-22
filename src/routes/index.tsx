@@ -43,7 +43,7 @@ function Header() {
     return () => window.removeEventListener("scroll", f);
   }, []);
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 transition-colors ${scrolled || open ? "border-b border-cyan/20 bg-void/80 backdrop-blur-md" : ""}`}>
+    <header className={`animate-page-fade fixed inset-x-0 top-0 z-50 transition-colors ${scrolled || open ? "border-b border-cyan/20 bg-void/80 backdrop-blur-md" : ""}`}>
       <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between px-5">
         <a href="#top" className="flex items-center gap-3.5" aria-label="Cloud Quest home">
           <GlowMark className="size-11 sm:size-12" />
@@ -429,7 +429,8 @@ function CheckpointRail({ activeIdx, onSelect }: { activeIdx: number; onSelect: 
   return (
     <aside
       aria-label="Page checkpoints"
-      className="fixed right-4 top-1/2 z-50 hidden -translate-y-1/2 flex-col items-end gap-2.5 lg:flex"
+      className="animate-page-fade fixed right-4 top-1/2 z-50 hidden -translate-y-1/2 flex-col items-end gap-2.5 lg:flex"
+      style={{ animationDelay: "320ms" }}
     >
       <div className="mb-1 border border-cyan/30 bg-void/85 px-2 py-1 font-pixel text-[0.45rem] text-cyan/80 backdrop-blur-sm">
         CHK {CHECKPOINTS[activeIdx]?.code}/07
@@ -501,32 +502,32 @@ function Hero() {
 
       <div className="relative my-auto mx-auto grid w-full max-w-7xl items-center gap-12 px-5 py-8 lg:grid-cols-12">
         <div className="relative z-10 lg:col-span-7">
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="animate-enter-up flex flex-wrap items-center gap-2.5" style={{ animationDelay: "60ms" }}>
             <GlowMark className="size-8" />
             <Hud>{EVENT.organizer}</Hud>
             <Hud tone="magenta">Insert coin to learn</Hud>
           </div>
-          <h1 className="mt-6 font-display font-black uppercase leading-[0.88] tracking-tight">
+          <h1 className="animate-enter-up mt-6 font-display font-black uppercase leading-[0.88] tracking-tight" style={{ animationDelay: "140ms" }}>
             <span className="block text-[clamp(2.6rem,7.8vw,6.6rem)] text-foreground">Enter the</span>
             <span className="block text-[clamp(2.6rem,7.8vw,6.6rem)] text-cyan glow-cyan">Cloud.</span>
             <span className="mt-2 block text-[clamp(1.5rem,4.2vw,3.5rem)] text-stroke">Level up</span>
             <span className="block text-[clamp(1.5rem,4.2vw,3.5rem)] text-violet glow-violet">your skills.</span>
           </h1>
-          <p className="mt-6 max-w-xl text-lg text-muted-foreground">
+          <p className="animate-enter-up mt-6 max-w-xl text-lg text-muted-foreground" style={{ animationDelay: "220ms" }}>
             <strong className="text-foreground">{EVENT.name}</strong> — a guided quest through hands-on cloud labs, hosted by {EVENT.organizer}. No prior experience required.
           </p>
-          <div className="mt-8 flex flex-wrap gap-4">
+          <div className="animate-enter-up mt-8 flex flex-wrap gap-4" style={{ animationDelay: "300ms" }}>
             <a {...regProps} className="btn-arcade">START YOUR QUEST ↗</a>
             <a href="#missions" className="btn-ghost-neon">VIEW MISSIONS</a>
           </div>
         </div>
-        <div className="relative lg:col-span-5 lg:-mr-12">
+        <div className="animate-enter-scale relative lg:col-span-5 lg:-mr-12" style={{ animationDelay: "200ms" }}>
           <Monitor />
         </div>
       </div>
 
       {/* Integrated Portal Marquee Footer at bottom of Hero viewport */}
-      <div className="relative z-10 overflow-hidden whitespace-nowrap border-y border-violet/40 bg-void/85 py-2 font-pixel text-[0.52rem] text-violet" aria-hidden="true">
+      <div className="animate-page-fade relative z-10 overflow-hidden whitespace-nowrap border-y border-violet/40 bg-void/85 py-2 font-pixel text-[0.52rem] text-violet" style={{ animationDelay: "360ms" }} aria-hidden="true">
         <div className="flex animate-marquee gap-10 pr-10">
           {Array.from({ length: 12 }).map((_, i) => <span key={i}>★ SCROLL ONCE TO ADVANCE CHECKPOINT ★ CLOUD QUEST ★ PLAYER 01 READY</span>)}
         </div>

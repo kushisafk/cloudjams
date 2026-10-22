@@ -280,7 +280,7 @@ function RegisterPage() {
       </div>
 
       {/* Top Arcade Bar */}
-      <header className="relative z-20 shrink-0 border-b border-cyan/20 bg-void/85 backdrop-blur-md">
+      <header className="animate-page-fade relative z-20 shrink-0 border-b border-cyan/20 bg-void/85 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-5">
           <a href="/" className="flex items-center gap-3" aria-label="Back to Cloud Quest home">
             <GlowMark className="size-9 sm:size-10" />
@@ -315,23 +315,35 @@ function RegisterPage() {
           {screen === "title" && (
             <div className="text-center">
               {/* Small Pixel-Art Arcade Visual */}
-              <div className="relative mx-auto mb-3 flex h-14 w-36 items-center justify-center overflow-hidden border border-cyan/40 bg-void-2/80 box-glow">
+              <div
+                className="animate-enter-scale relative mx-auto mb-3 flex h-14 w-36 items-center justify-center overflow-hidden border border-cyan/40 bg-void-2/80 box-glow"
+                style={{ animationDelay: "50ms" }}
+              >
                 <div className="absolute size-11 rounded-full bg-gradient-to-b from-magenta via-violet to-transparent opacity-75 [mask-image:repeating-linear-gradient(0deg,black_0_4px,transparent_4px_6px)]" />
                 <PixelCloud className="relative z-10 w-20 text-cyan drop-shadow-[0_0_12px_var(--cyan)] animate-floaty" />
               </div>
 
               {/* Main Title */}
-              <h1 className="font-display text-2xl font-black uppercase tracking-tight sm:text-4xl">
+              <h1
+                className="animate-enter-up font-display text-2xl font-black uppercase tracking-tight sm:text-4xl"
+                style={{ animationDelay: "110ms" }}
+              >
                 GOOGLE CLOUD <span className="text-cyan glow-cyan">STUDY JAMS</span>
               </h1>
 
               {/* Short Line */}
-              <p className="mt-1 text-sm sm:text-base text-muted-foreground">
+              <p
+                className="animate-enter-up mt-1 text-sm sm:text-base text-muted-foreground"
+                style={{ animationDelay: "160ms" }}
+              >
                 Your cloud journey starts here.
               </p>
 
               {/* Arcade Game Main Menu */}
-              <div className="mt-4 text-left bg-void-2/90 backdrop-blur-md box-glow p-4 sm:p-5">
+              <div
+                className="animate-enter-scale mt-4 text-left bg-void-2/90 backdrop-blur-md box-glow p-4 sm:p-5"
+                style={{ animationDelay: "210ms" }}
+              >
                 <div className="flex items-center justify-between border-b border-cyan/25 pb-2.5 mb-3">
                   <span className="font-pixel text-[0.55rem] uppercase tracking-wider text-cyan">
                     SELECT OPTION
@@ -455,7 +467,7 @@ function RegisterPage() {
                   SCREEN 1: NEW GAME — STUDENT INFORMATION
                  ============================================================ */}
               {screen === "student" && (
-                <section className="bg-void-2/95 backdrop-blur-md box-glow p-5 sm:p-6">
+                <section className="animate-enter-scale bg-void-2/95 backdrop-blur-md box-glow p-5 sm:p-6">
                   <div className="mb-4 border-b border-cyan/20 pb-3">
                     <div className="font-pixel text-[0.52rem] uppercase tracking-wider text-cyan">
                       MODE 01 · NEW GAME (REQUIRED)
@@ -669,7 +681,7 @@ function RegisterPage() {
                   SCREEN 2: LOADOUT — LEARNING PROFILE (OPTIONAL)
                  ============================================================ */}
               {screen === "learning" && (
-                <section className="bg-void-2/95 backdrop-blur-md box-glow-violet p-6 sm:p-8">
+                <section className="animate-enter-scale bg-void-2/95 backdrop-blur-md box-glow-violet p-6 sm:p-8">
                   <div className="mb-6 border-b border-violet/30 pb-4">
                     <div className="font-pixel text-[0.55rem] uppercase tracking-wider text-violet">
                       MODE 02 · LOADOUT (OPTIONAL)
@@ -817,7 +829,7 @@ function RegisterPage() {
                 <form
                   onSubmit={handleSubmit}
                   noValidate
-                  className="bg-void-2/95 backdrop-blur-md box-glow p-6 sm:p-8"
+                  className="animate-enter-scale bg-void-2/95 backdrop-blur-md box-glow p-6 sm:p-8"
                 >
                   <div className="mb-6 border-b border-cyan/20 pb-4">
                     <div className="font-pixel text-[0.55rem] uppercase tracking-wider text-magenta">
@@ -923,7 +935,7 @@ function RegisterPage() {
               SCREEN 4: SUCCESS SCREEN
              ============================================================ */}
           {screen === "success" && (
-            <section className="bg-void-2/95 backdrop-blur-md box-glow p-6 sm:p-10 text-center">
+            <section className="animate-enter-scale bg-void-2/95 backdrop-blur-md box-glow p-6 sm:p-10 text-center">
               <Hud tone="cyan">★ REGISTRATION COMPLETE</Hud>
 
               <h1 className="mt-4 font-display text-3xl font-black uppercase sm:text-4xl">
