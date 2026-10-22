@@ -638,7 +638,7 @@ function Status() {
       </div>
 
       <div className="relative mx-auto grid w-full max-w-7xl gap-12 lg:grid-cols-[1fr_1.2fr] lg:items-center">
-        <SectionHead tag="// CHECKPOINT 04 · SYSTEM STATUS" title={<>Event <span className="text-violet glow-violet">info</span></>} sub="Core program details for this edition of Google Cloud Study Jams." />
+        <SectionHead tag="// CHECKPOINT 04 · SYSTEM STATUS" title={<>Event <span className="text-violet glow-violet">info</span></>} sub={`Core program details for this edition of Google Cloud Study Jams. Registration closes ${EVENT.deadline}.`} />
         <Reveal>
           <Panel title="status_panel.sys">
             <dl className="divide-y divide-cyan/15 font-mono">

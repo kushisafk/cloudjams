@@ -15,7 +15,7 @@ export const EVENT = {
   organizer: "GDG on Campus at IARE",
   date: "[Add event date]",
   venue: "[Add venue / online mode]",
-  deadline: "[Add registration deadline]",
+  deadline: "10th Nov 2026",
 };
 
 /** EXAMPLE missions — edit once organizers confirm the actual curriculum. */

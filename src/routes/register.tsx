@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { type FormEvent, useEffect, useState } from "react";
 import { GlowMark, Hud, PixelCloud } from "@/components/jams/Pixel";
-import { REGISTRATION_OPEN } from "@/config/event";
+import { EVENT, REGISTRATION_OPEN } from "@/config/event";
 import { submitRegistration } from "@/lib/registration.server";
 
 export const Route = createFileRoute("/register")({
@@ -395,7 +395,7 @@ function RegisterPage() {
                 <div className="mt-4 pt-3 border-t border-cyan/20 flex flex-col sm:flex-row items-center justify-between gap-3">
                   <span className="text-xs text-muted-foreground">
                     {REGISTRATION_OPEN
-                      ? "Registration is open · Free for students"
+                      ? `Registration open until ${EVENT.deadline} · Free for students`
                       : "Registration is currently closed"}
                   </span>
                   <button
