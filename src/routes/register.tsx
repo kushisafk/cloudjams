@@ -261,7 +261,7 @@ function RegisterPage() {
   });
 
   return (
-    <div className="relative min-h-screen bg-void text-foreground flex flex-col justify-between overflow-x-hidden">
+    <div className="relative min-h-screen md:h-screen md:overflow-hidden bg-void text-foreground flex flex-col justify-between overflow-x-hidden">
       {/* Synthwave Arcade Horizon Backdrop */}
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden z-0">
         <div className="absolute inset-0 starfield opacity-70" />
@@ -280,13 +280,13 @@ function RegisterPage() {
       </div>
 
       {/* Top Arcade Bar */}
-      <header className="relative z-20 border-b border-cyan/20 bg-void/85 backdrop-blur-md">
-        <div className="mx-auto flex h-[4.5rem] max-w-5xl items-center justify-between px-5">
-          <a href="/" className="flex items-center gap-3.5" aria-label="Back to Cloud Quest home">
-            <GlowMark className="size-10 sm:size-11" />
-            <span className="font-pixel text-[0.65rem] leading-snug tracking-wide sm:text-[0.72rem]">
+      <header className="relative z-20 shrink-0 border-b border-cyan/20 bg-void/85 backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-5">
+          <a href="/" className="flex items-center gap-3" aria-label="Back to Cloud Quest home">
+            <GlowMark className="size-9 sm:size-10" />
+            <span className="font-pixel text-[0.62rem] leading-snug tracking-wide sm:text-[0.68rem]">
               STUDY JAMS
-              <span className="mt-0.5 block text-[0.52rem] text-muted-foreground sm:text-[0.58rem]">
+              <span className="mt-0.5 block text-[0.5rem] text-muted-foreground sm:text-[0.55rem]">
                 GDG · IARE
               </span>
             </span>
@@ -307,7 +307,7 @@ function RegisterPage() {
       </header>
 
       {/* Main Centered Arcade Screen */}
-      <main className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-10">
+      <main className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 py-3 sm:py-4">
         <div className="w-full max-w-2xl">
           {/* ============================================================
               SCREEN 0: ARCADE GAME HOME SCREEN (TITLE MENU)
@@ -315,30 +315,25 @@ function RegisterPage() {
           {screen === "title" && (
             <div className="text-center">
               {/* Small Pixel-Art Arcade Visual */}
-              <div className="relative mx-auto mb-5 flex h-20 w-44 items-center justify-center overflow-hidden border border-cyan/40 bg-void-2/80 box-glow">
-                <div className="absolute size-14 rounded-full bg-gradient-to-b from-magenta via-violet to-transparent opacity-75 [mask-image:repeating-linear-gradient(0deg,black_0_4px,transparent_4px_6px)]" />
-                <PixelCloud className="relative z-10 w-24 text-cyan drop-shadow-[0_0_12px_var(--cyan)] animate-floaty" />
+              <div className="relative mx-auto mb-3 flex h-14 w-36 items-center justify-center overflow-hidden border border-cyan/40 bg-void-2/80 box-glow">
+                <div className="absolute size-11 rounded-full bg-gradient-to-b from-magenta via-violet to-transparent opacity-75 [mask-image:repeating-linear-gradient(0deg,black_0_4px,transparent_4px_6px)]" />
+                <PixelCloud className="relative z-10 w-20 text-cyan drop-shadow-[0_0_12px_var(--cyan)] animate-floaty" />
               </div>
 
-              {/* Hosted By Line */}
-              <p className="font-pixel text-[0.6rem] sm:text-[0.65rem] uppercase tracking-[0.2em] text-magenta">
-                Hosted by GDG on Campus at IARE
-              </p>
-
               {/* Main Title */}
-              <h1 className="mt-2 font-display text-3xl font-black uppercase tracking-tight sm:text-5xl">
+              <h1 className="font-display text-2xl font-black uppercase tracking-tight sm:text-4xl">
                 GOOGLE CLOUD <span className="text-cyan glow-cyan">STUDY JAMS</span>
               </h1>
 
               {/* Short Line */}
-              <p className="mt-2 text-base sm:text-lg text-muted-foreground">
+              <p className="mt-1 text-sm sm:text-base text-muted-foreground">
                 Your cloud journey starts here.
               </p>
 
               {/* Arcade Game Main Menu */}
-              <div className="mt-7 text-left bg-void-2/90 backdrop-blur-md box-glow p-5 sm:p-6">
-                <div className="flex items-center justify-between border-b border-cyan/25 pb-3 mb-4">
-                  <span className="font-pixel text-[0.58rem] uppercase tracking-wider text-cyan">
+              <div className="mt-4 text-left bg-void-2/90 backdrop-blur-md box-glow p-4 sm:p-5">
+                <div className="flex items-center justify-between border-b border-cyan/25 pb-2.5 mb-3">
+                  <span className="font-pixel text-[0.55rem] uppercase tracking-wider text-cyan">
                     SELECT OPTION
                   </span>
                   <span className="font-mono text-xs text-muted-foreground">
@@ -346,7 +341,7 @@ function RegisterPage() {
                   </span>
                 </div>
 
-                <div className="space-y-3" role="menu" aria-label="Arcade registration menu">
+                <div className="space-y-2" role="menu" aria-label="Arcade registration menu">
                   {menuOptions.map((item, idx) => {
                     const active = selectedIdx === idx;
                     return (
@@ -356,16 +351,16 @@ function RegisterPage() {
                         onMouseEnter={() => setSelectedIdx(idx)}
                         onClick={item.onSelect}
                         className={[
-                          "w-full text-left p-4 border transition-all flex items-center justify-between gap-4",
+                          "w-full text-left px-3.5 py-2.5 sm:py-3 border transition-all flex items-center justify-between gap-4",
                           active
                             ? "border-cyan bg-cyan/10 shadow-[0_0_22px_-6px_var(--cyan)]"
                             : "border-cyan/20 bg-void/70 hover:border-cyan/50",
                         ].join(" ")}
                       >
-                        <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="flex items-center gap-3 min-w-0">
                           <span
                             className={[
-                              "font-pixel text-xs w-5 text-center shrink-0",
+                              "font-pixel text-xs w-4 text-center shrink-0",
                               active ? "text-magenta animate-blink" : "text-muted-foreground/30",
                             ].join(" ")}
                           >
@@ -374,20 +369,20 @@ function RegisterPage() {
                           <div className="min-w-0">
                             <div
                               className={[
-                                "font-display text-base sm:text-lg font-bold tracking-wide",
+                                "font-display text-sm sm:text-base font-bold tracking-wide",
                                 active ? "text-cyan" : "text-foreground",
                               ].join(" ")}
                             >
                               {item.title}
                             </div>
-                            <p className="text-sm text-muted-foreground mt-0.5 truncate">
+                            <p className="text-xs sm:text-sm text-muted-foreground truncate">
                               {item.subtitle}
                             </p>
                           </div>
                         </div>
 
                         <span
-                          className={`shrink-0 border px-2.5 py-1 font-pixel text-[0.52rem] tracking-wider ${item.statusClass}`}
+                          className={`shrink-0 border px-2 py-1 font-pixel text-[0.5rem] tracking-wider ${item.statusClass}`}
                         >
                           {item.status}
                         </span>
@@ -397,8 +392,8 @@ function RegisterPage() {
                 </div>
 
                 {/* Quick Start Bar */}
-                <div className="mt-6 pt-4 border-t border-cyan/20 flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <span className="text-xs sm:text-sm text-muted-foreground">
+                <div className="mt-4 pt-3 border-t border-cyan/20 flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <span className="text-xs text-muted-foreground">
                     {REGISTRATION_OPEN
                       ? "Registration is open · Free for students"
                       : "Registration is currently closed"}
@@ -406,7 +401,7 @@ function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setScreen(isStudentInfoComplete ? "confirm" : "student")}
-                    className="btn-arcade w-full sm:w-auto justify-center"
+                    className="btn-arcade w-full sm:w-auto justify-center py-3 px-5"
                   >
                     ▶ {isStudentInfoComplete ? "CONTINUE TO LAUNCH" : "PRESS START"}
                   </button>
@@ -421,11 +416,11 @@ function RegisterPage() {
           {(screen === "student" || screen === "learning" || screen === "confirm") && (
             <div>
               {/* Top Arcade Mode Switcher */}
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <button
                   type="button"
                   onClick={() => setScreen("title")}
-                  className="inline-flex items-center gap-2 border border-cyan/40 bg-void-2/80 px-3 py-2 font-pixel text-[0.55rem] text-cyan hover:bg-cyan hover:text-void transition-colors"
+                  className="inline-flex items-center gap-2 border border-cyan/40 bg-void-2/80 px-3 py-1.5 font-pixel text-[0.52rem] text-cyan hover:bg-cyan hover:text-void transition-colors"
                 >
                   ⌂ TITLE SCREEN
                 </button>
@@ -443,7 +438,7 @@ function RegisterPage() {
                         type="button"
                         onClick={() => setScreen(tab.id)}
                         className={[
-                          "border px-3 py-2 font-pixel text-[0.52rem] transition-colors",
+                          "border px-2.5 py-1.5 font-pixel text-[0.5rem] transition-colors",
                           active
                             ? "border-cyan bg-cyan text-void"
                             : "border-cyan/25 bg-void-2/60 text-muted-foreground hover:text-foreground",
@@ -460,26 +455,23 @@ function RegisterPage() {
                   SCREEN 1: NEW GAME — STUDENT INFORMATION
                  ============================================================ */}
               {screen === "student" && (
-                <section className="bg-void-2/95 backdrop-blur-md box-glow p-6 sm:p-8">
-                  <div className="mb-6 border-b border-cyan/20 pb-4">
-                    <div className="font-pixel text-[0.55rem] uppercase tracking-wider text-cyan">
+                <section className="bg-void-2/95 backdrop-blur-md box-glow p-5 sm:p-6">
+                  <div className="mb-4 border-b border-cyan/20 pb-3">
+                    <div className="font-pixel text-[0.52rem] uppercase tracking-wider text-cyan">
                       MODE 01 · NEW GAME (REQUIRED)
                     </div>
-                    <h2 className="mt-1.5 font-display text-2xl font-bold text-foreground sm:text-3xl">
+                    <h2 className="mt-1 font-display text-xl font-bold text-foreground sm:text-2xl">
                       Student Information
                     </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Fill in your basic details to create your player pass.
-                    </p>
                   </div>
 
-                  <div className="space-y-5">
-                    <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-3.5">
+                    <div className="grid gap-3.5 sm:grid-cols-2">
                       {/* Full Name */}
                       <div>
                         <label
                           htmlFor="fullName"
-                          className="mb-1.5 block text-sm font-medium text-foreground"
+                          className="mb-1 block text-xs sm:text-sm font-medium text-foreground"
                         >
                           Full name <span className="text-magenta">*</span>
                         </label>
@@ -489,7 +481,7 @@ function RegisterPage() {
                           value={form.fullName}
                           onChange={(e) => updateField("fullName", e.target.value)}
                           placeholder="e.g. Aarav Sharma"
-                          className="h-11 w-full border border-cyan/35 bg-void px-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-cyan focus:outline-none"
+                          className="h-10 w-full border border-cyan/35 bg-void px-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-cyan focus:outline-none"
                         />
                         {errors.fullName && (
                           <p className="mt-1 text-xs text-magenta">{errors.fullName}</p>
@@ -500,7 +492,7 @@ function RegisterPage() {
                       <div>
                         <label
                           htmlFor="rollNumber"
-                          className="mb-1.5 block text-sm font-medium text-foreground"
+                          className="mb-1 block text-xs sm:text-sm font-medium text-foreground"
                         >
                           Roll number <span className="text-magenta">*</span>
                         </label>
@@ -512,7 +504,7 @@ function RegisterPage() {
                             updateField("rollNumber", e.target.value.toUpperCase())
                           }
                           placeholder="e.g. 25951A05F3"
-                          className="h-11 w-full border border-cyan/35 bg-void px-3.5 font-mono text-sm uppercase text-foreground placeholder:font-sans placeholder:normal-case placeholder:text-muted-foreground/50 focus:border-cyan focus:outline-none"
+                          className="h-10 w-full border border-cyan/35 bg-void px-3 font-mono text-sm uppercase text-foreground placeholder:font-sans placeholder:normal-case placeholder:text-muted-foreground/50 focus:border-cyan focus:outline-none"
                         />
                         {errors.rollNumber && (
                           <p className="mt-1 text-xs text-magenta">{errors.rollNumber}</p>
@@ -520,12 +512,12 @@ function RegisterPage() {
                       </div>
                     </div>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid gap-3.5 sm:grid-cols-2">
                       {/* Email Address */}
                       <div>
                         <label
                           htmlFor="collegeEmail"
-                          className="mb-1.5 block text-sm font-medium text-foreground"
+                          className="mb-1 block text-xs sm:text-sm font-medium text-foreground"
                         >
                           Email address <span className="text-magenta">*</span>
                         </label>
@@ -535,7 +527,7 @@ function RegisterPage() {
                           value={form.collegeEmail}
                           onChange={(e) => updateField("collegeEmail", e.target.value)}
                           placeholder="you@gmail.com"
-                          className="h-11 w-full border border-cyan/35 bg-void px-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-cyan focus:outline-none"
+                          className="h-10 w-full border border-cyan/35 bg-void px-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-cyan focus:outline-none"
                         />
                         {errors.collegeEmail && (
                           <p className="mt-1 text-xs text-magenta">{errors.collegeEmail}</p>
@@ -546,7 +538,7 @@ function RegisterPage() {
                       <div>
                         <label
                           htmlFor="collegeName"
-                          className="mb-1.5 block text-sm font-medium text-foreground"
+                          className="mb-1 block text-xs sm:text-sm font-medium text-foreground"
                         >
                           College name <span className="text-magenta">*</span>
                         </label>
@@ -556,7 +548,7 @@ function RegisterPage() {
                           value={form.collegeName}
                           onChange={(e) => updateField("collegeName", e.target.value)}
                           placeholder="Institute of Aeronautical Engineering (IARE)"
-                          className="h-11 w-full border border-cyan/35 bg-void px-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-cyan focus:outline-none"
+                          className="h-10 w-full border border-cyan/35 bg-void px-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-cyan focus:outline-none"
                         />
                         {errors.collegeName && (
                           <p className="mt-1 text-xs text-magenta">{errors.collegeName}</p>
@@ -566,10 +558,10 @@ function RegisterPage() {
 
                     {/* Year of Study */}
                     <div>
-                      <label className="mb-1.5 block text-sm font-medium text-foreground">
+                      <label className="mb-1 block text-xs sm:text-sm font-medium text-foreground">
                         Year of study <span className="text-magenta">*</span>
                       </label>
-                      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                         {YEAR_OPTIONS.map((yr) => {
                           const selected = form.yearOfStudy === yr;
                           return (
@@ -578,7 +570,7 @@ function RegisterPage() {
                               type="button"
                               onClick={() => updateField("yearOfStudy", yr)}
                               className={[
-                                "h-11 border text-sm font-medium transition-colors",
+                                "h-10 border text-sm font-medium transition-colors",
                                 selected
                                   ? "border-cyan bg-cyan/20 text-cyan shadow-[0_0_14px_-4px_var(--cyan)]"
                                   : "border-cyan/25 bg-void text-muted-foreground hover:border-cyan/60 hover:text-foreground",
@@ -594,12 +586,12 @@ function RegisterPage() {
                       )}
                     </div>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid gap-3.5 sm:grid-cols-2">
                       {/* Branch / Department */}
                       <div>
                         <label
                           htmlFor="branch"
-                          className="mb-1.5 block text-sm font-medium text-foreground"
+                          className="mb-1 block text-xs sm:text-sm font-medium text-foreground"
                         >
                           Branch / department <span className="text-magenta">*</span>
                         </label>
@@ -609,16 +601,16 @@ function RegisterPage() {
                           value={form.branch}
                           onChange={(e) => updateField("branch", e.target.value)}
                           placeholder="e.g. CSE, IT, ECE"
-                          className="h-11 w-full border border-cyan/35 bg-void px-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-cyan focus:outline-none"
+                          className="h-10 w-full border border-cyan/35 bg-void px-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-cyan focus:outline-none"
                         />
-                        <div className="mt-2 flex flex-wrap gap-1.5">
+                        <div className="mt-1.5 flex flex-wrap gap-1">
                           {POPULAR_BRANCHES.map((b) => (
                             <button
                               key={b}
                               type="button"
                               onClick={() => updateField("branch", b)}
                               className={[
-                                "border px-2 py-0.5 text-xs transition-colors",
+                                "border px-2 py-0.5 text-[11px] transition-colors",
                                 form.branch === b
                                   ? "border-cyan bg-cyan/20 text-cyan"
                                   : "border-cyan/20 bg-void text-muted-foreground hover:text-foreground",
@@ -635,8 +627,8 @@ function RegisterPage() {
 
                       {/* Phone Number (Optional) */}
                       <div>
-                        <div className="mb-1.5 flex items-center justify-between">
-                          <label htmlFor="phone" className="text-sm font-medium text-foreground">
+                        <div className="mb-1 flex items-center justify-between">
+                          <label htmlFor="phone" className="text-xs sm:text-sm font-medium text-foreground">
                             Phone number
                           </label>
                           <span className="text-xs text-muted-foreground">Optional</span>
@@ -647,17 +639,14 @@ function RegisterPage() {
                           value={form.phone}
                           onChange={(e) => updateField("phone", e.target.value)}
                           placeholder="+91 98765 43210"
-                          className="h-11 w-full border border-cyan/25 bg-void px-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-cyan focus:outline-none"
+                          className="h-10 w-full border border-cyan/25 bg-void px-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-cyan focus:outline-none"
                         />
-                        <p className="mt-1.5 text-xs text-muted-foreground">
-                          Only needed if you want WhatsApp reminders.
-                        </p>
                       </div>
                     </div>
                   </div>
 
                   {/* Step Footer */}
-                  <div className="mt-8 flex items-center justify-between gap-4 border-t border-cyan/20 pt-5">
+                  <div className="mt-5 flex items-center justify-between gap-4 border-t border-cyan/20 pt-4">
                     <button
                       type="button"
                       onClick={() => setScreen("title")}
@@ -668,7 +657,7 @@ function RegisterPage() {
                     <button
                       type="button"
                       onClick={handleStudentContinue}
-                      className="btn-arcade"
+                      className="btn-arcade py-3 px-5"
                     >
                       NEXT: LOADOUT ▶
                     </button>
@@ -999,7 +988,7 @@ function RegisterPage() {
       </main>
 
       {/* Minimal Arcade Footer */}
-      <footer className="relative z-10 py-4 text-center font-pixel text-[0.52rem] uppercase tracking-widest text-muted-foreground/70">
+      <footer className="relative z-10 shrink-0 py-2 text-center font-pixel text-[0.48rem] uppercase tracking-widest text-muted-foreground/60">
         GOOGLE CLOUD STUDY JAMS · GDG ON CAMPUS IARE
       </footer>
     </div>
