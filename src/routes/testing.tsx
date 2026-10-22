@@ -61,7 +61,7 @@ function TestingPage() {
 
       {/* Main Content */}
       <main className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 py-10">
-        <section className="w-full max-w-xl bg-void-2/95 box-glow p-6 sm:p-10 text-center">
+        <section className="w-full max-w-xl bg-void-2/95 backdrop-blur-md box-glow p-6 sm:p-10 text-center">
           <div className="mx-auto mb-5 flex h-16 w-36 items-center justify-center border border-cyan/40 bg-void/80">
             <PixelCloud className="w-20 text-cyan drop-shadow-[0_0_12px_var(--cyan)] animate-floaty" />
           </div>

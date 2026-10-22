@@ -91,9 +91,11 @@ export function ScrollStory() {
   useEffect(() => {
     if (!pinned) return;
     let raf = 0;
-    let lastQuantized = -1;
+    let current = 0;
+    let target = 0;
+    let ticking = false;
 
-    const computeProgress = () => {
+    const computeTarget = () => {
       const el = ref.current;
       if (!el) return 0;
       const r = el.getBoundingClientRect();
@@ -101,28 +103,35 @@ export function ScrollStory() {
       return Math.min(1, Math.max(0, -r.top / scrollable));
     };
 
-    const sync = () => {
-      raf = 0;
-      const raw = computeProgress();
-      const quantized = Math.round(raw * 100) / 100;
-      if (quantized !== lastQuantized) {
-        lastQuantized = quantized;
-        setProgress(quantized);
+    const tick = () => {
+      const diff = target - current;
+      if (Math.abs(diff) > 0.0005) {
+        current += diff * 0.14;
+        setProgress(current);
+        raf = requestAnimationFrame(tick);
+      } else {
+        current = target;
+        setProgress(current);
+        ticking = false;
       }
     };
 
     const onScroll = () => {
-      if (!raf) {
-        raf = requestAnimationFrame(sync);
+      target = computeTarget();
+      if (!ticking) {
+        ticking = true;
+        raf = requestAnimationFrame(tick);
       }
     };
 
-    sync();
+    target = computeTarget();
+    current = target;
+    setProgress(current);
 
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
     return () => {
-      if (raf) cancelAnimationFrame(raf);
+      cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
@@ -160,10 +169,10 @@ export function ScrollStory() {
   return (
     <section ref={ref} id="story" className="relative h-[320vh]">
       <div className="sticky top-0 flex h-screen items-center overflow-hidden">
-        <div className="absolute inset-0 starfield opacity-65" aria-hidden="true" />
+        <div className="absolute inset-0 starfield opacity-65" style={{ transform: `translateY(${progress * -90}px)` }} aria-hidden="true" />
         <div className="absolute inset-0 cyber-grid opacity-35 [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_80%)]" aria-hidden="true" />
-        <div className="pointer-events-none absolute -left-32 top-1/4 size-[480px] rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--cyan)_14%,transparent),transparent_70%)]" aria-hidden="true" />
-        <div className="pointer-events-none absolute -right-32 bottom-1/4 size-[520px] rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--violet)_20%,transparent),transparent_70%)]" aria-hidden="true" />
+        <div className="pointer-events-none absolute -left-32 top-1/4 size-[420px] rounded-full bg-cyan/10 blur-[130px]" aria-hidden="true" />
+        <div className="pointer-events-none absolute -right-32 bottom-1/4 size-[460px] rounded-full bg-violet/15 blur-[140px]" aria-hidden="true" />
         <div className="relative mx-auto grid w-full max-w-6xl grid-cols-[0.9fr_1.3fr] items-center gap-14 px-8">
           <div className="space-y-8">
             {header}
