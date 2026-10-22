@@ -37,13 +37,20 @@ function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
-    const f = () => setScrolled(window.scrollY > 40);
-    f();
+    let last = window.scrollY > 40;
+    setScrolled(last);
+    const f = () => {
+      const next = window.scrollY > 40;
+      if (next !== last) {
+        last = next;
+        setScrolled(next);
+      }
+    };
     window.addEventListener("scroll", f, { passive: true });
     return () => window.removeEventListener("scroll", f);
   }, []);
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 transition-colors ${scrolled || open ? "border-b border-cyan/20 bg-void/80 backdrop-blur-md" : ""}`}>
+    <header className={`fixed inset-x-0 top-0 z-50 transition-colors ${scrolled || open ? "border-b border-cyan/20 bg-void/85 backdrop-blur-md" : ""}`}>
       <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between px-5">
         <a href="#top" className="flex items-center gap-3.5" aria-label="Cloud Quest home">
           <GlowMark className="size-11 sm:size-12" />
@@ -80,18 +87,33 @@ function Monitor() {
   useEffect(() => {
     const el = ref.current;
     if (!el || !window.matchMedia("(pointer: fine) and (prefers-reduced-motion: no-preference)").matches) return;
-    const move = (e: PointerEvent) => {
-      const x = e.clientX / window.innerWidth - 0.5;
-      const y = e.clientY / window.innerHeight - 0.5;
-      el.style.transform = `perspective(1400px) rotateY(${-12 + x * 8}deg) rotateX(${4 - y * 6}deg)`;
+    let raf = 0;
+    let latestX = 0;
+    let latestY = 0;
+
+    const applyTilt = () => {
+      raf = 0;
+      el.style.transform = `perspective(1400px) rotateY(${-12 + latestX * 8}deg) rotateX(${4 - latestY * 6}deg)`;
     };
-    window.addEventListener("pointermove", move);
-    return () => window.removeEventListener("pointermove", move);
+
+    const move = (e: PointerEvent) => {
+      if (window.scrollY > window.innerHeight) return;
+      latestX = e.clientX / window.innerWidth - 0.5;
+      latestY = e.clientY / window.innerHeight - 0.5;
+      if (!raf) {
+        raf = requestAnimationFrame(applyTilt);
+      }
+    };
+    window.addEventListener("pointermove", move, { passive: true });
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener("pointermove", move);
+    };
   }, []);
   return (
-    <div ref={ref} className="relative transition-transform duration-300 ease-out" style={{ transform: "perspective(1400px) rotateY(-12deg) rotateX(4deg)" }}>
+    <div ref={ref} className="relative will-change-transform" style={{ transform: "perspective(1400px) rotateY(-12deg) rotateX(4deg)" }}>
       {/* cabinet */}
-      <div className="relative border-2 border-violet/80 bg-void-2 p-4 shadow-[0_0_80px_-10px_var(--violet)] sm:p-6">
+      <div className="relative border-2 border-violet/80 bg-void-2 p-4 shadow-[0_0_60px_-12px_var(--violet)] sm:p-6">
         <div className="mb-3 flex items-center justify-between font-pixel text-[0.5rem]">
           <span className="text-cyan">● SYSTEM ONLINE</span>
           <span className="text-magenta">PLAYER 01</span>
@@ -123,7 +145,6 @@ function Monitor() {
             </div>
           </div>
           <div className="absolute bottom-3 right-3 font-pixel text-[0.5rem] text-cyan">HI-SCORE<br /><span className="text-foreground">000000</span><span className="animate-blink">▌</span></div>
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-10 animate-scanpass bg-gradient-to-b from-transparent via-cyan/10 to-transparent" aria-hidden="true" />
         </div>
         <div className="mt-4 flex items-center justify-between" aria-hidden="true">
           <div className="flex gap-3">
@@ -142,41 +163,18 @@ interface CheckpointDef {
   code: string;
   label: string;
   hash: string;
-  getTop: () => number;
-}
-
-function getElementPageTop(selector: string): number {
-  const el = document.querySelector<HTMLElement>(selector);
-  if (!el) return 0;
-  return el.getBoundingClientRect().top + window.scrollY;
+  selector: string;
 }
 
 const CHECKPOINTS: CheckpointDef[] = [
-  { id: "cp-hero", code: "01", label: "START", hash: "#top", getTop: () => 0 },
-  { id: "cp-story", code: "02", label: "STORY", hash: "#story", getTop: () => getElementPageTop("#story") },
-  { id: "cp-missions", code: "03", label: "MISSIONS", hash: "#missions", getTop: () => getElementPageTop("#missions") },
-  { id: "cp-status", code: "04", label: "EVENT INFO", hash: "#status", getTop: () => getElementPageTop("#status") },
-  { id: "cp-how", code: "05", label: "CHECKPOINTS", hash: "#how", getTop: () => getElementPageTop("#how") },
-  { id: "cp-faq", code: "06", label: "FAQ", hash: "#faq", getTop: () => getElementPageTop("#faq") },
-  {
-    id: "cp-register",
-    code: "07",
-    label: "READY PLAYER ONE",
-    hash: "#register",
-    getTop: () => {
-      const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-      return Math.min(maxScroll, getElementPageTop("#register"));
-    },
-  },
+  { id: "cp-hero", code: "01", label: "START", hash: "#top", selector: "#top" },
+  { id: "cp-story", code: "02", label: "STORY", hash: "#story", selector: "#story" },
+  { id: "cp-missions", code: "03", label: "MISSIONS", hash: "#missions", selector: "#missions" },
+  { id: "cp-status", code: "04", label: "EVENT INFO", hash: "#status", selector: "#status" },
+  { id: "cp-how", code: "05", label: "CHECKPOINTS", hash: "#how", selector: "#how" },
+  { id: "cp-faq", code: "06", label: "FAQ", hash: "#faq", selector: "#faq" },
+  { id: "cp-register", code: "07", label: "READY PLAYER ONE", hash: "#register", selector: "#register" },
 ];
-
-function getStoryBounds(): { top: number; end: number } {
-  const el = document.querySelector<HTMLElement>("#story");
-  if (!el) return { top: 0, end: 0 };
-  const top = el.getBoundingClientRect().top + window.scrollY;
-  const end = top + Math.max(0, el.offsetHeight - window.innerHeight);
-  return { top, end };
-}
 
 function useCheckpointScroll() {
   const [activeIdx, setActiveIdx] = useState(0);
@@ -188,25 +186,44 @@ function useCheckpointScroll() {
 
     let rafId = 0;
     let isAnimating = false;
-    let isStoryLerp = false;
-    let storyCurrentY = window.scrollY;
-    let storyTargetY = window.scrollY;
     let lockUntil = 0;
     let lastWheelTime = 0;
     let lastAbsDelta = 0;
     let currentIdx = 0;
 
-    const getMaxScroll = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    // Cached layout metrics (recalculated on resize, NOT on every scroll frame!)
+    let cachedTops: number[] = CHECKPOINTS.map(() => 0);
+    let storyTop = 0;
+    let storyEnd = 0;
+    let maxScroll = 0;
+
+    const measureOffsets = () => {
+      const scrollY = window.scrollY;
+      maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+
+      cachedTops = CHECKPOINTS.map((cp, idx) => {
+        if (idx === 0) return 0;
+        const el = document.querySelector<HTMLElement>(cp.selector);
+        if (!el) return 0;
+        const top = el.getBoundingClientRect().top + scrollY;
+        return idx === CHECKPOINTS.length - 1 ? Math.min(maxScroll, top) : top;
+      });
+
+      const storyEl = document.querySelector<HTMLElement>("#story");
+      if (storyEl) {
+        storyTop = storyEl.getBoundingClientRect().top + scrollY;
+        storyEnd = storyTop + Math.max(0, storyEl.offsetHeight - window.innerHeight);
+      }
+    };
 
     const findNearestIndex = (y: number) => {
-      const { top: storyTop, end: storyEnd } = getStoryBounds();
       if (y >= storyTop - 20 && y <= storyEnd + 20) {
         return 1; // Inside #story
       }
       let bestIdx = 0;
       let bestDist = Infinity;
-      for (let i = 0; i < CHECKPOINTS.length; i++) {
-        const d = Math.abs(CHECKPOINTS[i]!.getTop() - y);
+      for (let i = 0; i < cachedTops.length; i++) {
+        const d = Math.abs((cachedTops[i] ?? 0) - y);
         if (d < bestDist) {
           bestDist = d;
           bestIdx = i;
@@ -215,17 +232,14 @@ function useCheckpointScroll() {
       return bestIdx;
     };
 
-    const animateToY = (targetY: number, duration = 700) => {
+    const animateToY = (targetY: number, duration = 620) => {
       cancelAnimationFrame(rafId);
-      isStoryLerp = false;
       const startY = window.scrollY;
-      const clampedTarget = Math.min(getMaxScroll(), Math.max(0, targetY));
+      const clampedTarget = Math.min(maxScroll, Math.max(0, targetY));
       const change = clampedTarget - startY;
 
       if (Math.abs(change) < 2) {
         window.scrollTo({ top: clampedTarget, behavior: "instant" as ScrollBehavior });
-        storyCurrentY = clampedTarget;
-        storyTargetY = clampedTarget;
         isAnimating = false;
         return;
       }
@@ -236,19 +250,14 @@ function useCheckpointScroll() {
       const step = (now: number) => {
         const elapsed = now - startTime;
         const t = Math.min(1, elapsed / duration);
-        // Smooth easeInOutCubic curve
         const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
         const nextY = startY + change * eased;
         window.scrollTo({ top: nextY, behavior: "instant" as ScrollBehavior });
-        storyCurrentY = nextY;
-        storyTargetY = nextY;
 
         if (t < 1) {
           rafId = requestAnimationFrame(step);
         } else {
           window.scrollTo({ top: clampedTarget, behavior: "instant" as ScrollBehavior });
-          storyCurrentY = clampedTarget;
-          storyTargetY = clampedTarget;
           isAnimating = false;
         }
       };
@@ -256,41 +265,19 @@ function useCheckpointScroll() {
       rafId = requestAnimationFrame(step);
     };
 
-    const startStoryLerp = () => {
-      if (isStoryLerp) return;
-      isStoryLerp = true;
-      storyCurrentY = window.scrollY;
-
-      const tickStory = () => {
-        const diff = storyTargetY - storyCurrentY;
-        if (Math.abs(diff) > 0.5) {
-          storyCurrentY += diff * 0.14;
-          window.scrollTo({ top: storyCurrentY, behavior: "instant" as ScrollBehavior });
-          rafId = requestAnimationFrame(tickStory);
-        } else {
-          storyCurrentY = storyTargetY;
-          window.scrollTo({ top: storyCurrentY, behavior: "instant" as ScrollBehavior });
-          isStoryLerp = false;
-        }
-      };
-
-      rafId = requestAnimationFrame(tickStory);
-    };
-
     const goToIndex = (idx: number, customY?: number) => {
+      measureOffsets();
       const clamped = Math.max(0, Math.min(CHECKPOINTS.length - 1, idx));
       currentIdx = clamped;
       setActiveIdx(clamped);
-      lockUntil = performance.now() + 740;
-      const cp = CHECKPOINTS[clamped]!;
-      animateToY(customY ?? cp.getTop(), 700);
+      lockUntil = performance.now() + 660;
+      animateToY(customY ?? (cachedTops[clamped] ?? 0), 620);
     };
 
     goToRef.current = (idx: number) => goToIndex(idx);
 
     const onWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey || e.defaultPrevented) return;
-      e.preventDefault();
 
       let delta = e.deltaY;
       if (e.deltaMode === 1) delta *= 36;
@@ -300,40 +287,26 @@ function useCheckpointScroll() {
       if (absDelta < 5) return;
 
       const now = performance.now();
-      const { top: storyTop, end: storyEnd } = getStoryBounds();
       const y = window.scrollY;
       const inStoryZone = y >= storyTop - 16 && y <= storyEnd + 16;
 
-      // While inside #story, scroll smoothly and continuously so the widget animation plays out!
+      // While inside #story, let the browser's hardware-accelerated native scroll handle it!
       if (inStoryZone && !isAnimating && now >= lockUntil) {
-        if (!isStoryLerp) {
-          storyTargetY = y;
-          storyCurrentY = y;
-        }
+        const atStoryBottom = y >= storyEnd - 8;
+        const atStoryTop = y <= storyTop + 8;
 
-        const atStoryBottom = y >= storyEnd - 8 && storyTargetY >= storyEnd - 4;
-        const atStoryTop = y <= storyTop + 8 && storyTargetY <= storyTop + 4;
-
-        if (delta > 0 && !atStoryBottom) {
-          currentIdx = 1;
-          setActiveIdx(1);
-          storyTargetY = Math.min(storyEnd, Math.max(storyTop, storyTargetY + delta * 0.8));
-          startStoryLerp();
+        if ((delta > 0 && !atStoryBottom) || (delta < 0 && !atStoryTop)) {
+          if (currentIdx !== 1) {
+            currentIdx = 1;
+            setActiveIdx(1);
+          }
           lastWheelTime = now;
           lastAbsDelta = absDelta;
-          return;
-        }
-
-        if (delta < 0 && !atStoryTop) {
-          currentIdx = 1;
-          setActiveIdx(1);
-          storyTargetY = Math.min(storyEnd, Math.max(storyTop, storyTargetY + delta * 0.8));
-          startStoryLerp();
-          lastWheelTime = now;
-          lastAbsDelta = absDelta;
-          return;
+          return; // Do NOT call e.preventDefault() — native compositor scrolls #story smoothly
         }
       }
+
+      e.preventDefault();
 
       const timeSinceLast = now - lastWheelTime;
       const isMomentumTail = timeSinceLast < 130 && absDelta <= lastAbsDelta * 1.2;
@@ -349,13 +322,12 @@ function useCheckpointScroll() {
       const dir = delta > 0 ? 1 : -1;
       const next = Math.max(0, Math.min(CHECKPOINTS.length - 1, nearest + dir));
 
-      // When scrolling UP from Missions into Story, land at the bottom of Story so scrolling up scrubs 100% -> 0%
       if (nearest === 2 && next === 1 && dir === -1) {
         goToIndex(1, storyEnd);
         return;
       }
 
-      if (next !== nearest || Math.abs(CHECKPOINTS[nearest]!.getTop() - y) > 24) {
+      if (next !== nearest || Math.abs((cachedTops[nearest] ?? 0) - y) > 24) {
         goToIndex(next);
       }
     };
@@ -402,12 +374,14 @@ function useCheckpointScroll() {
       history.pushState(null, "", hash);
     };
 
+    measureOffsets();
     currentIdx = findNearestIndex(window.scrollY);
     setActiveIdx(currentIdx);
 
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", measureOffsets, { passive: true });
     document.addEventListener("click", onClick);
 
     return () => {
@@ -415,6 +389,7 @@ function useCheckpointScroll() {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", measureOffsets);
       document.removeEventListener("click", onClick);
     };
   }, []);
@@ -481,19 +456,12 @@ function CheckpointRail({ activeIdx, onSelect }: { activeIdx: number; onSelect: 
 }
 
 function Hero() {
-  const [y, setY] = useState(0);
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const f = () => setY(window.scrollY);
-    window.addEventListener("scroll", f, { passive: true });
-    return () => window.removeEventListener("scroll", f);
-  }, []);
   return (
     <section id="top" className="relative flex min-h-screen flex-col justify-between overflow-hidden pt-20">
-      <div className="absolute inset-0 starfield" style={{ transform: `translateY(${y * 0.25}px)` }} aria-hidden="true" />
-      <div className="absolute -left-40 top-20 size-[560px] rounded-full bg-violet/25 blur-[120px]" aria-hidden="true" />
-      <div className="absolute -right-20 top-1/3 size-[420px] rounded-full bg-cyan/15 blur-[120px]" aria-hidden="true" />
-      <div className="absolute inset-x-0 bottom-0 h-[38vh] overflow-hidden" aria-hidden="true" style={{ transform: `translateY(${y * 0.08}px)` }}>
+      <div className="absolute inset-0 starfield" aria-hidden="true" />
+      <div className="pointer-events-none absolute -left-40 top-20 size-[600px] rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--violet)_28%,transparent),transparent_70%)]" aria-hidden="true" />
+      <div className="pointer-events-none absolute -right-20 top-1/3 size-[460px] rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--cyan)_18%,transparent),transparent_70%)]" aria-hidden="true" />
+      <div className="absolute inset-x-0 bottom-0 h-[38vh] overflow-hidden" aria-hidden="true">
         <div className="neon-floor absolute -inset-x-1/2 top-0 h-[200%] opacity-70" />
       </div>
       <PixelCloud className="absolute left-[6%] top-[18%] w-20 text-violet/40" />
@@ -580,7 +548,7 @@ function Missions() {
       <OverworldBridge />
       {/* Section atmospheric layers */}
       <div className="pointer-events-none absolute inset-0 dither opacity-25 [mask-image:radial-gradient(ellipse_at_center,black_35%,transparent_80%)]" aria-hidden="true" />
-      <div className="pointer-events-none absolute left-1/2 top-1/2 size-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan/10 blur-[140px]" aria-hidden="true" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 size-[680px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--cyan)_14%,transparent),transparent_70%)]" aria-hidden="true" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 overflow-hidden opacity-35" aria-hidden="true">
         <div className="neon-floor absolute -inset-x-1/2 top-0 h-[200%]" />
       </div>
@@ -592,7 +560,7 @@ function Missions() {
         <div className="grid gap-6 md:grid-cols-3">
           {TRACKS.map((t, i) => (
             <Reveal key={t.id} delay={i * 120}>
-              <article className={`tilt-card group relative h-full border-2 bg-void-2/85 backdrop-blur-sm p-6 ${tones[i]} hover:shadow-[0_0_40px_-6px_currentColor]`}>
+              <article className={`tilt-card group relative h-full border-2 bg-void-2/90 p-6 ${tones[i]} hover:shadow-[0_0_40px_-6px_currentColor]`}>
                 <div className="flex items-start justify-between">
                   <span className="font-pixel text-[0.6rem]">{t.id}</span>
                   <span className="border border-current px-2 py-1 font-pixel text-[0.5rem]">{t.level}</span>
@@ -622,8 +590,8 @@ function Status() {
   return (
     <section id="status" className="relative flex min-h-screen items-center overflow-hidden px-5 py-24">
       {/* Telemetry radar & ambient glow behind Event Info */}
-      <div className="pointer-events-none absolute -right-24 top-1/2 size-[520px] -translate-y-1/2 rounded-full bg-violet/15 blur-[130px]" aria-hidden="true" />
-      <div className="pointer-events-none absolute -left-24 top-1/3 size-[380px] rounded-full bg-magenta/10 blur-[120px]" aria-hidden="true" />
+      <div className="pointer-events-none absolute -right-24 top-1/2 size-[560px] -translate-y-1/2 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--violet)_18%,transparent),transparent_70%)]" aria-hidden="true" />
+      <div className="pointer-events-none absolute -left-24 top-1/3 size-[420px] rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--magenta)_14%,transparent),transparent_70%)]" aria-hidden="true" />
       <div className="pointer-events-none absolute right-[8%] top-1/2 hidden size-[440px] -translate-y-1/2 opacity-30 lg:block" aria-hidden="true">
         <div className="absolute inset-0 animate-spin-slow rounded-full border border-dashed border-cyan/60" />
         <div className="absolute inset-12 rounded-full border border-violet/50" />
@@ -665,7 +633,7 @@ function Checkpoints() {
     <section id="how" className="relative flex min-h-screen items-center overflow-hidden px-5 py-24">
       {/* Isometric network & circuit traces behind Checkpoints */}
       <div className="pointer-events-none absolute inset-0 iso-grid opacity-45 [mask-image:radial-gradient(ellipse_at_center,black_25%,transparent_75%)]" aria-hidden="true" />
-      <div className="pointer-events-none absolute left-1/3 top-1/2 size-[500px] -translate-y-1/2 rounded-full bg-cyan/10 blur-[130px]" aria-hidden="true" />
+      <div className="pointer-events-none absolute left-1/3 top-1/2 size-[540px] -translate-y-1/2 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--cyan)_14%,transparent),transparent_70%)]" aria-hidden="true" />
       <PixelCloud className="pointer-events-none absolute right-[12%] top-14 w-20 animate-floaty-slow text-magenta/25" />
       <PixelCloud className="pointer-events-none absolute left-[8%] bottom-10 w-24 animate-floaty text-cyan/20" />
 
@@ -677,7 +645,7 @@ function Checkpoints() {
             <Reveal key={s.title} delay={i * 120}>
               <li className="relative pl-14 md:pl-0 md:pt-14">
                 <span className="absolute left-0 top-0 grid size-9 place-items-center border-2 border-cyan bg-void font-pixel text-[0.6rem] text-cyan shadow-[0_0_16px_var(--cyan)]">{i + 1}</span>
-                <div className="border border-cyan/20 bg-void-2/65 p-5 backdrop-blur-sm transition-colors hover:border-cyan/50">
+                <div className="border border-cyan/20 bg-void-2/85 p-5 transition-colors hover:border-cyan/50">
                   <p className="font-pixel text-[0.5rem] text-magenta">STEP 0{i + 1}</p>
                   <h3 className="mt-2 font-display text-xl font-black uppercase">{s.title}</h3>
                   <p className="mt-2 text-muted-foreground">{s.body}</p>
@@ -697,7 +665,7 @@ function Faq() {
     <section id="faq" className="relative flex min-h-screen items-center overflow-hidden px-5 py-24">
       {/* Synthwave signal rings & dither field behind FAQ */}
       <div className="pointer-events-none absolute inset-0 dither opacity-25 [mask-image:radial-gradient(circle_at_center,black_20%,transparent_75%)]" aria-hidden="true" />
-      <div className="pointer-events-none absolute left-1/2 top-1/2 size-[580px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-magenta/10 blur-[140px]" aria-hidden="true" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 size-[620px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--magenta)_14%,transparent),transparent_70%)]" aria-hidden="true" />
       <div className="pointer-events-none absolute left-1/2 top-1/2 size-[680px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-violet/20 opacity-50" aria-hidden="true" />
       <div className="pointer-events-none absolute left-1/2 top-1/2 size-[860px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-cyan/15 opacity-50" aria-hidden="true" />
       <PixelCloud className="pointer-events-none absolute left-[6%] top-20 w-20 animate-floaty text-violet/30" />
@@ -736,25 +704,14 @@ function Faq() {
   );
 }
 
-/** Continuous cyber-arcade backdrop wrapping all sections after ScrollStory */
+/** Continuous cyber-arcade backdrop wrapping all sections after ScrollStory (zero JS scroll listeners) */
 function PostStoryBackdrop({ children }: { children: ReactNode }) {
-  const [scrollY, setScrollY] = useState(0);
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const onScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   return (
     <div className="relative overflow-hidden">
-      {/* Continuous parallax starfield */}
       <div
-        className="pointer-events-none absolute -inset-y-40 inset-x-0 starfield opacity-55"
-        style={{ transform: `translateY(${(scrollY * -0.12) % 320}px)` }}
+        className="pointer-events-none absolute inset-0 starfield opacity-55"
         aria-hidden="true"
       />
-      {/* Architectural cyber blueprint grid */}
       <div
         className="pointer-events-none absolute inset-0 cyber-grid opacity-45 [mask-image:linear-gradient(to_bottom,transparent,black_8%,black_92%,transparent)]"
         aria-hidden="true"
@@ -794,7 +751,7 @@ function FinalCta() {
       <div className="absolute inset-x-0 bottom-0 h-1/2 overflow-hidden" aria-hidden="true">
         <div className="neon-floor absolute -inset-x-1/2 top-0 h-[200%]" />
       </div>
-      <div className="absolute left-1/2 top-1/2 size-[520px] -translate-x-1/2 -translate-y-1/2 animate-spin-slow rounded-full border-2 border-dashed border-violet/60 shadow-[0_0_80px_-10px_var(--violet)]" aria-hidden="true" />
+      <div className="absolute left-1/2 top-1/2 size-[520px] -translate-x-1/2 -translate-y-1/2 animate-spin-slow rounded-full border-2 border-dashed border-violet/60" aria-hidden="true" />
       <div className="absolute left-1/2 top-1/2 size-[380px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan/50 bg-[radial-gradient(circle,color-mix(in_oklab,var(--violet)_35%,transparent),transparent_70%)]" aria-hidden="true" />
       <div />
       <Reveal className="relative my-auto px-5">
@@ -817,7 +774,7 @@ function FinalCta() {
 
 function Footer() {
   return (
-    <footer className="relative z-10 border-t border-cyan/30 bg-void-2/90 px-5 py-4 backdrop-blur-sm">
+    <footer className="relative z-10 border-t border-cyan/30 bg-void-2/95 px-5 py-4">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 font-pixel text-[0.5rem] text-muted-foreground">
         <span className="flex items-center gap-3"><GlowMark className="size-8" /> {EVENT.organizer.toUpperCase()}</span>
         <span className="text-cyan">1UP · {EVENT.name.toUpperCase()}</span>
@@ -857,7 +814,6 @@ function Index() {
         </PostStoryBackdrop>
         <FinalCta />
       </main>
-      <div className="pointer-events-none fixed inset-0 z-[70] bg-[repeating-linear-gradient(0deg,color-mix(in_oklab,black_18%,transparent)_0_1px,transparent_1px_3px)] opacity-40" aria-hidden="true" />
     </div>
   );
 }

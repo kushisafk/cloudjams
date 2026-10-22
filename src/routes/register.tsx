@@ -244,21 +244,29 @@ function RegisterPage() {
   // Keyboard navigation on the Arcade Home Screen
   useEffect(() => {
     if (screen !== "title") return;
+    const actions: Array<() => void> = [
+      () => setScreen("student"),
+      () => setScreen("learning"),
+      () => setScreen("confirm"),
+      () => {
+        window.location.href = "/";
+      },
+    ];
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") {
         e.preventDefault();
-        setSelectedIdx((prev) => (prev + 1) % menuOptions.length);
+        setSelectedIdx((prev) => (prev + 1) % actions.length);
       } else if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") {
         e.preventDefault();
-        setSelectedIdx((prev) => (prev - 1 + menuOptions.length) % menuOptions.length);
+        setSelectedIdx((prev) => (prev - 1 + actions.length) % actions.length);
       } else if (e.key === "Enter") {
         e.preventDefault();
-        menuOptions[selectedIdx]?.onSelect();
+        actions[selectedIdx]?.();
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  });
+  }, [screen, selectedIdx]);
 
   return (
     <div className="relative min-h-screen bg-void text-foreground flex flex-col justify-between overflow-x-hidden">
@@ -336,7 +344,7 @@ function RegisterPage() {
               </p>
 
               {/* Arcade Game Main Menu */}
-              <div className="mt-7 text-left bg-void-2/90 backdrop-blur-md box-glow p-5 sm:p-6">
+              <div className="mt-7 text-left bg-void-2/95 box-glow p-5 sm:p-6">
                 <div className="flex items-center justify-between border-b border-cyan/25 pb-3 mb-4">
                   <span className="font-pixel text-[0.58rem] uppercase tracking-wider text-cyan">
                     SELECT OPTION
@@ -460,7 +468,7 @@ function RegisterPage() {
                   SCREEN 1: NEW GAME — STUDENT INFORMATION
                  ============================================================ */}
               {screen === "student" && (
-                <section className="bg-void-2/95 backdrop-blur-md box-glow p-6 sm:p-8">
+                <section className="bg-void-2/95 box-glow p-6 sm:p-8">
                   <div className="mb-6 border-b border-cyan/20 pb-4">
                     <div className="font-pixel text-[0.55rem] uppercase tracking-wider text-cyan">
                       MODE 01 · NEW GAME (REQUIRED)
@@ -680,7 +688,7 @@ function RegisterPage() {
                   SCREEN 2: LOADOUT — LEARNING PROFILE (OPTIONAL)
                  ============================================================ */}
               {screen === "learning" && (
-                <section className="bg-void-2/95 backdrop-blur-md box-glow-violet p-6 sm:p-8">
+                <section className="bg-void-2/95 box-glow-violet p-6 sm:p-8">
                   <div className="mb-6 border-b border-violet/30 pb-4">
                     <div className="font-pixel text-[0.55rem] uppercase tracking-wider text-violet">
                       MODE 02 · LOADOUT (OPTIONAL)
@@ -828,7 +836,7 @@ function RegisterPage() {
                 <form
                   onSubmit={handleSubmit}
                   noValidate
-                  className="bg-void-2/95 backdrop-blur-md box-glow p-6 sm:p-8"
+                  className="bg-void-2/95 box-glow p-6 sm:p-8"
                 >
                   <div className="mb-6 border-b border-cyan/20 pb-4">
                     <div className="font-pixel text-[0.55rem] uppercase tracking-wider text-magenta">
@@ -934,7 +942,7 @@ function RegisterPage() {
               SCREEN 4: SUCCESS SCREEN
              ============================================================ */}
           {screen === "success" && (
-            <section className="bg-void-2/95 backdrop-blur-md box-glow p-6 sm:p-10 text-center">
+            <section className="bg-void-2/95 box-glow p-6 sm:p-10 text-center">
               <Hud tone="cyan">★ REGISTRATION COMPLETE</Hud>
 
               <h1 className="mt-4 font-display text-3xl font-black uppercase sm:text-4xl">
