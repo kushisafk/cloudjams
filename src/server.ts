@@ -114,6 +114,20 @@ export default {
       if (url.pathname === "/api/register") {
         return await handleRegisterApiRequest(request);
       }
+      if (url.pathname === "/api/participant") {
+        const ref = url.searchParams.get("ref") ?? "";
+        const { lookupParticipantByQrToken } = await import("./lib/registration.server");
+        const details = await lookupParticipantByQrToken(ref);
+        return Response.json(details);
+      }
+      if (url.pathname === "/api/auth/google") {
+        const { handleGoogleOAuthStart } = await import("./lib/gmail-oauth.server");
+        return await handleGoogleOAuthStart(request);
+      }
+      if (url.pathname === "/api/auth/google/callback") {
+        const { handleGoogleOAuthCallback } = await import("./lib/gmail-oauth.server");
+        return await handleGoogleOAuthCallback(request);
+      }
 
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);

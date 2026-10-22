@@ -1,5 +1,6 @@
-import { Resend } from "resend";
+import { auth, gmail } from "@googleapis/gmail";
 import { EVENT } from "@/config/event";
+import { ensureEnvLoaded, resolveGoogleRedirectUri } from "./gmail-oauth.server";
 
 export interface SendConfirmationEmailInput {
   registrationId: string;
@@ -21,6 +22,23 @@ export interface SendConfirmationEmailResult {
   error?: string;
 }
 
+export interface GmailMessageSendClient {
+  users: {
+    messages: {
+      send: (params: {
+        userId: string;
+        requestBody: {
+          raw: string;
+        };
+      }) => Promise<{
+        data?: {
+          id?: string | null;
+        };
+      }>;
+    };
+  };
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -34,6 +52,55 @@ function isConfirmedDetail(value: string | undefined): value is string {
   if (!value) return false;
   const trimmed = value.trim();
   return Boolean(trimmed && !trimmed.startsWith("["));
+}
+
+/**
+ * Encodes a string or Buffer in RFC 4648 base64url format (no +, /, or = padding)
+ * as required by the Gmail API `users.messages.send` raw field.
+ */
+export function encodeBase64Url(input: Buffer | string): string {
+  const buf = typeof input === "string" ? Buffer.from(input, "utf8") : input;
+  return buf
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+
+/**
+ * Formats a Buffer or UTF-8 string as 76-character wrapped base64 for MIME bodies.
+ */
+function toMimeBase64Block(input: Buffer | string): string {
+  const buf = typeof input === "string" ? Buffer.from(input, "utf8") : input;
+  const b64 = buf.toString("base64");
+  return b64.replace(/(.{76})/g, "$1\r\n").trim();
+}
+
+/**
+ * Encodes a UTF-8 header value using RFC 2047 Base64 encoded-word syntax when non-ASCII chars exist.
+ */
+function encodeMimeHeaderText(value: string): string {
+  const sanitized = value.replace(/[\r\n]+/g, " ").trim();
+  if (/^[\x20-\x7E]*$/.test(sanitized)) {
+    return sanitized;
+  }
+  return `=?UTF-8?B?${Buffer.from(sanitized, "utf8").toString("base64")}?=`;
+}
+
+/**
+ * Formats the From header using GMAIL_SENDER_EMAIL and optional GMAIL_SENDER_NAME.
+ * Supports either:
+ * - Plain email ("organizer@gmail.com") -> defaults to "(FAKE) GDG on Campus at IARE <organizer@gmail.com>"
+ * - Formatted email ("Custom Name <organizer@gmail.com>")
+ * - Custom GMAIL_SENDER_NAME env variable
+ */
+function formatFromHeader(senderEmail: string): string {
+  const cleaned = senderEmail.replace(/[\r\n]+/g, " ").trim();
+  if (cleaned.includes("<") && cleaned.includes(">")) {
+    return cleaned;
+  }
+  const customName = process.env["GMAIL_SENDER_NAME"]?.trim() || "(FAKE) GDG on Campus at IARE";
+  return `"${customName.replace(/"/g, "")}" <${cleaned}>`;
 }
 
 export function buildConfirmationEmailContent(input: SendConfirmationEmailInput): {
@@ -212,85 +279,279 @@ export function buildConfirmationEmailContent(input: SendConfirmationEmailInput)
 }
 
 /**
- * Sends the confirmation email via Resend with the QR PNG attached.
- * Never throws unhandled exceptions or exposes secret keys.
+ * Builds a complete RFC 2822 / MIME message containing:
+ * - multipart/mixed (outer container)
+ *   - multipart/related (HTML + inline QR image with Content-ID: <studyjams-qr>)
+ *     - multipart/alternative (plain-text fallback + HTML body)
+ *     - image/png inline part (cid:studyjams-qr)
+ *   - image/png downloadable attachment (study-jams-qr-${playerCode}.png)
+ * And encodes the entire message in base64url format for Gmail API.
+ */
+export function buildRawMimeMessage(
+  input: SendConfirmationEmailInput & { fromEmail: string },
+): {
+  rawMime: string;
+  encodedMessage: string;
+  attachmentFilename: string;
+} {
+  const { subject, html, text } = buildConfirmationEmailContent(input);
+  const safeIdToken = input.registrationId.replace(/[^A-Za-z0-9]/g, "") || "studyjams";
+  const mixedBoundary = `mixed_${safeIdToken}_${input.attemptNumber}`;
+  const relatedBoundary = `related_${safeIdToken}_${input.attemptNumber}`;
+  const altBoundary = `alt_${safeIdToken}_${input.attemptNumber}`;
+
+  const attachmentFilename = `study-jams-qr-${input.playerCode.replace(/[^A-Za-z0-9_-]/g, "")}.png`;
+  const qrBase64Block = toMimeBase64Block(input.qrPngBuffer);
+  const textBase64Block = toMimeBase64Block(text);
+  const htmlBase64Block = toMimeBase64Block(html);
+
+  const recipientEmail = input.email.replace(/[\r\n]+/g, "").trim();
+
+  const lines: string[] = [
+    `From: ${formatFromHeader(input.fromEmail)}`,
+    `To: ${recipientEmail}`,
+    `Subject: ${encodeMimeHeaderText(subject)}`,
+    `MIME-Version: 1.0`,
+    `Content-Type: multipart/mixed; boundary="${mixedBoundary}"`,
+    ``,
+    `--${mixedBoundary}`,
+    `Content-Type: multipart/related; type="multipart/alternative"; boundary="${relatedBoundary}"`,
+    ``,
+    `--${relatedBoundary}`,
+    `Content-Type: multipart/alternative; boundary="${altBoundary}"`,
+    ``,
+    `--${altBoundary}`,
+    `Content-Type: text/plain; charset="UTF-8"`,
+    `Content-Transfer-Encoding: base64`,
+    ``,
+    textBase64Block,
+    ``,
+    `--${altBoundary}`,
+    `Content-Type: text/html; charset="UTF-8"`,
+    `Content-Transfer-Encoding: base64`,
+    ``,
+    htmlBase64Block,
+    ``,
+    `--${altBoundary}--`,
+    ``,
+    `--${relatedBoundary}`,
+    `Content-Type: image/png; name="${attachmentFilename}"`,
+    `Content-Transfer-Encoding: base64`,
+    `Content-ID: <studyjams-qr>`,
+    `Content-Disposition: inline; filename="${attachmentFilename}"`,
+    ``,
+    qrBase64Block,
+    ``,
+    `--${relatedBoundary}--`,
+    ``,
+    `--${mixedBoundary}`,
+    `Content-Type: image/png; name="${attachmentFilename}"`,
+    `Content-Transfer-Encoding: base64`,
+    `Content-Disposition: attachment; filename="${attachmentFilename}"`,
+    ``,
+    qrBase64Block,
+    ``,
+    `--${mixedBoundary}--`,
+    ``,
+  ];
+
+  const rawMime = lines.join("\r\n");
+  const encodedMessage = encodeBase64Url(rawMime);
+
+  return {
+    rawMime,
+    encodedMessage,
+    attachmentFilename,
+  };
+}
+
+/**
+ * Sanitizes errors thrown by googleapis / OAuth2 so secrets, tokens, or raw MIME payloads
+ * are never exposed in logs or database error columns.
+ */
+export function sanitizeGmailError(err: unknown): string {
+  if (!err) {
+    return "Unknown Gmail delivery failure.";
+  }
+
+  const anyErr = err as {
+    code?: number | string;
+    status?: number;
+    message?: string;
+    response?: {
+      status?: number;
+      data?: {
+        error?:
+          | string
+          | {
+              code?: number;
+              message?: string;
+              status?: string;
+              errors?: Array<{ reason?: string; message?: string }>;
+            };
+        error_description?: string;
+      };
+    };
+  };
+
+  const httpStatus =
+    typeof anyErr.status === "number"
+      ? anyErr.status
+      : typeof anyErr.response?.status === "number"
+        ? anyErr.response.status
+        : typeof anyErr.code === "number"
+          ? anyErr.code
+          : undefined;
+
+  const rawDataError = anyErr.response?.data?.error;
+  const oauthErrorCode = typeof rawDataError === "string" ? rawDataError : undefined;
+  const apiReasons =
+    typeof rawDataError === "object" && rawDataError !== null && Array.isArray(rawDataError.errors)
+      ? rawDataError.errors.map((e) => e.reason || "").filter(Boolean)
+      : [];
+
+  const combinedText = [
+    anyErr.message ?? "",
+    oauthErrorCode ?? "",
+    anyErr.response?.data?.error_description ?? "",
+    typeof rawDataError === "object" && rawDataError !== null ? (rawDataError.message ?? "") : "",
+    ...apiReasons,
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  if (
+    oauthErrorCode === "invalid_grant" ||
+    combinedText.includes("invalid_grant") ||
+    combinedText.includes("token has been expired or revoked")
+  ) {
+    return "Gmail OAuth refresh token is expired or revoked (invalid_grant). Please re-authorize Gmail OAuth.";
+  }
+
+  if (
+    oauthErrorCode === "invalid_client" ||
+    oauthErrorCode === "unauthorized_client" ||
+    combinedText.includes("invalid_client") ||
+    combinedText.includes("unauthorized_client") ||
+    httpStatus === 401
+  ) {
+    return "Gmail authentication failed: invalid OAuth client credentials or unauthorized token.";
+  }
+
+  if (
+    httpStatus === 429 ||
+    combinedText.includes("ratelimitexceeded") ||
+    combinedText.includes("userratelimitexceeded") ||
+    combinedText.includes("quotaexceeded") ||
+    combinedText.includes("dailylimitexceeded") ||
+    combinedText.includes("quota exceeded") ||
+    combinedText.includes("rate limit")
+  ) {
+    return "Gmail API quota or rate limit exceeded. Please retry after a short wait.";
+  }
+
+  if (httpStatus === 403) {
+    return "Gmail API access forbidden (HTTP 403): ensure Gmail API is enabled and the gmail.send scope is granted.";
+  }
+
+  if (httpStatus) {
+    return `Gmail API request failed with HTTP ${httpStatus}.`;
+  }
+
+  return "Gmail transport error occurred while sending confirmation email.";
+}
+
+function createGmailClientFromEnv(): {
+  client?: GmailMessageSendClient;
+  senderEmail?: string;
+  error?: string;
+} {
+  ensureEnvLoaded();
+
+  const clientId = process.env["GOOGLE_CLIENT_ID"]?.trim();
+  const clientSecret = process.env["GOOGLE_CLIENT_SECRET"]?.trim();
+  const refreshToken = process.env["GMAIL_REFRESH_TOKEN"]?.trim();
+  const senderEmail = process.env["GMAIL_SENDER_EMAIL"]?.trim();
+  const redirectUri = resolveGoogleRedirectUri();
+
+  const missing: string[] = [];
+  if (!clientId) missing.push("GOOGLE_CLIENT_ID");
+  if (!clientSecret) missing.push("GOOGLE_CLIENT_SECRET");
+  if (!refreshToken) missing.push("GMAIL_REFRESH_TOKEN");
+  if (!senderEmail) missing.push("GMAIL_SENDER_EMAIL");
+
+  if (!clientId || !clientSecret || !refreshToken || !senderEmail) {
+    return {
+      error: `Missing required Gmail environment variables: ${missing.join(", ")}.`,
+    };
+  }
+
+  const oauth2Client = new auth.OAuth2(clientId, clientSecret, redirectUri);
+  oauth2Client.setCredentials({ refresh_token: refreshToken });
+
+  const gmailClient = gmail({ version: "v1", auth: oauth2Client });
+  return {
+    client: gmailClient,
+    senderEmail,
+  };
+}
+
+/**
+ * Sends the confirmation email via the official Gmail API (`users.messages.send` with `userId: "me"`),
+ * including both the inline QR image (`cid:studyjams-qr`) and downloadable PNG attachment.
+ * Never throws unhandled exceptions or logs/exposes secret values.
  */
 export async function sendRegistrationConfirmationEmail(
   input: SendConfirmationEmailInput,
+  customGmailClient?: { client: GmailMessageSendClient; senderEmail: string },
 ): Promise<SendConfirmationEmailResult> {
-  if (!process.env["RESEND_API_KEY"] && typeof process.loadEnvFile === "function") {
-    try {
-      process.loadEnvFile();
-    } catch {
-      // Ignore when .env is absent in serverless production
-    }
-  }
-  const apiKey = process.env["RESEND_API_KEY"]?.trim();
-  const emailFrom = process.env["EMAIL_FROM"]?.trim();
+  let gmailClient: GmailMessageSendClient;
+  let senderEmail: string;
 
-  if (!apiKey) {
-    return {
-      sent: false,
-      error: "RESEND_API_KEY is not configured on the server.",
-    };
-  }
-
-  if (!emailFrom) {
-    return {
-      sent: false,
-      error: "EMAIL_FROM is not configured on the server.",
-    };
-  }
-
-  const { subject, html, text } = buildConfirmationEmailContent(input);
-  const resend = new Resend(apiKey);
-  const idempotencyKey = `studyjams-reg-${input.registrationId}-attempt-${input.attemptNumber}`;
-
-  try {
-    const response = await resend.emails.send(
-      {
-        from: emailFrom,
-        to: [input.email],
-        subject,
-        html,
-        text,
-        attachments: [
-          {
-            filename: `study-jams-qr-${input.playerCode}.png`,
-            content: input.qrPngBuffer,
-            contentType: "image/png",
-            contentId: "studyjams-qr",
-          },
-        ],
-      },
-      {
-        idempotencyKey,
-      },
-    );
-
-    if (response.error) {
+  if (customGmailClient) {
+    gmailClient = customGmailClient.client;
+    senderEmail = customGmailClient.senderEmail;
+  } else {
+    const resolved = createGmailClientFromEnv();
+    if (!resolved.client || !resolved.senderEmail) {
       return {
         sent: false,
-        error: `Resend API error (${response.error.name ?? "unknown"}): ${response.error.message}`,
+        error: resolved.error ?? "Gmail API is not configured on the server.",
       };
     }
+    gmailClient = resolved.client;
+    senderEmail = resolved.senderEmail;
+  }
 
-    if (!response.data?.id) {
+  try {
+    const { encodedMessage } = buildRawMimeMessage({
+      ...input,
+      fromEmail: senderEmail,
+    });
+
+    const response = await gmailClient.users.messages.send({
+      userId: "me",
+      requestBody: {
+        raw: encodedMessage,
+      },
+    });
+
+    const messageId = response?.data?.id?.trim();
+    if (!messageId) {
       return {
         sent: false,
-        error: "Resend did not return a message ID.",
+        error: "Gmail API did not return a message ID.",
       };
     }
 
     return {
       sent: true,
-      messageId: response.data.id,
+      messageId,
     };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown email transport error";
     return {
       sent: false,
-      error: `Email delivery exception: ${message}`,
+      error: sanitizeGmailError(err),
     };
   }
 }

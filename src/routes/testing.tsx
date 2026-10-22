@@ -1,14 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GlowMark, Hud, PixelCloud } from "@/components/jams/Pixel";
-import { getRegistrationByQrToken } from "@/lib/registration.server";
+import type { VerifiedParticipantDetails } from "@/lib/registration.server";
 
 export const Route = createFileRoute("/testing")({
   validateSearch: (search: Record<string, unknown>) => ({
     ref: typeof search["ref"] === "string" ? search["ref"] : undefined,
   }),
   loaderDeps: ({ search: { ref } }) => ({ ref }),
-  loader: async ({ deps: { ref } }) => {
-    return await getRegistrationByQrToken({ data: ref });
+  loader: async ({ deps: { ref } }): Promise<VerifiedParticipantDetails> => {
+    if (!ref) return { found: false };
+    try {
+      const origin =
+        typeof window !== "undefined"
+          ? window.location.origin
+          : (process.env["APP_BASE_URL"]?.replace(/\/+$/, "") || "http://localhost:8080");
+      const res = await fetch(`${origin}/api/participant?ref=${encodeURIComponent(ref)}`);
+      if (!res.ok) return { found: false };
+      return (await res.json()) as VerifiedParticipantDetails;
+    } catch {
+      return { found: false };
+    }
   },
   head: () => ({
     meta: [
@@ -29,7 +40,7 @@ function TestingPage() {
   const participant = Route.useLoaderData();
 
   return (
-    <div className="relative min-h-screen bg-void text-foreground flex flex-col justify-between overflow-x-hidden">
+    <div className="relative min-h-screen md:h-screen md:overflow-hidden bg-void text-foreground flex flex-col justify-between overflow-x-hidden">
       {/* Synthwave Arcade Backdrop */}
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden z-0">
         <div className="absolute inset-0 starfield opacity-70" />
@@ -41,13 +52,13 @@ function TestingPage() {
       </div>
 
       {/* Top Bar */}
-      <header className="animate-page-fade relative z-20 border-b border-cyan/20 bg-void/85 backdrop-blur-md">
-        <div className="mx-auto flex h-[4.5rem] max-w-5xl items-center justify-between px-5">
-          <a href="/" className="flex items-center gap-3.5" aria-label="Cloud Quest home">
-            <GlowMark className="size-10 sm:size-11" />
-            <span className="font-pixel text-[0.6rem] leading-snug tracking-wide sm:text-[0.68rem]">
+      <header className="animate-page-fade relative z-20 shrink-0 border-b border-cyan/20 bg-void/85 backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-5">
+          <a href="/" className="flex items-center gap-3" aria-label="Cloud Quest home">
+            <GlowMark className="size-9 sm:size-10" />
+            <span className="font-pixel text-[0.58rem] leading-snug tracking-wide sm:text-[0.65rem]">
               Google Cloud Study Jams
-              <span className="mt-0.5 block text-[0.52rem] text-muted-foreground sm:text-[0.58rem]">
+              <span className="mt-0.5 block text-[0.48rem] text-muted-foreground sm:text-[0.54rem]">
                 GDG · IARE
               </span>
             </span>
@@ -60,12 +71,12 @@ function TestingPage() {
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 py-10">
+      <main className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 py-4">
         <section
-          className="animate-enter-scale w-full max-w-xl bg-void-2/95 backdrop-blur-md box-glow p-6 sm:p-10 text-center"
+          className="animate-enter-scale w-full max-w-xl bg-void-2/95 backdrop-blur-md box-glow p-6 sm:p-7 text-center"
           style={{ animationDelay: "90ms" }}
         >
-          <div className="mx-auto mb-5 flex h-16 w-36 items-center justify-center border border-cyan/40 bg-void/80">
+          <div className="mx-auto mb-3.5 flex h-14 w-32 items-center justify-center border border-cyan/40 bg-void/80">
             <PixelCloud className="w-20 text-cyan drop-shadow-[0_0_12px_var(--cyan)] animate-floaty" />
           </div>
 
@@ -73,7 +84,7 @@ function TestingPage() {
             <>
               <Hud tone="cyan">★ VERIFIED PARTICIPANT</Hud>
 
-              <h1 className="mt-4 font-display text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">
+              <h1 className="mt-3 font-display text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">
                 {participant.fullName}
               </h1>
 
@@ -84,8 +95,8 @@ function TestingPage() {
               )}
 
               {/* Student Details Pass Card */}
-              <div className="mx-auto mt-6 max-w-md border border-cyan/40 bg-void p-5 text-left text-sm space-y-3">
-                <div className="flex items-center justify-between border-b border-cyan/20 pb-2.5 font-pixel text-[0.55rem] text-cyan">
+              <div className="mx-auto mt-4 w-full border border-cyan/40 bg-void p-4 text-left text-sm space-y-2.5">
+                <div className="flex items-center justify-between border-b border-cyan/20 pb-2 font-pixel text-[0.58rem] text-cyan">
                   <span>PLAYER PASS</span>
                   <span className="text-magenta">#{participant.playerCode}</span>
                 </div>
@@ -99,7 +110,7 @@ function TestingPage() {
 
                 <div className="flex justify-between gap-4">
                   <span className="text-muted-foreground">Full Name</span>
-                  <span className="font-medium text-foreground text-right">
+                  <span className="font-semibold text-foreground text-right">
                     {participant.fullName}
                   </span>
                 </div>
@@ -143,7 +154,7 @@ function TestingPage() {
                 )}
 
                 {participant.registeredAt && (
-                  <div className="flex justify-between gap-4 border-t border-cyan/15 pt-2.5 text-xs">
+                  <div className="flex justify-between gap-4 border-t border-cyan/15 pt-2 text-xs">
                     <span className="text-muted-foreground">Registered On</span>
                     <span className="font-mono text-muted-foreground text-right">
                       {new Date(participant.registeredAt).toLocaleDateString("en-IN", {
@@ -160,23 +171,23 @@ function TestingPage() {
             <>
               <Hud tone="magenta">✕ PASS NOT FOUND</Hud>
 
-              <h1 className="mt-5 font-display text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">
+              <h1 className="mt-4 font-display text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">
                 INVALID OR UNRECOGNIZED QR CODE
               </h1>
 
-              <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-md mx-auto leading-relaxed">
+              <p className="mt-2.5 text-sm sm:text-base text-muted-foreground max-w-md mx-auto leading-relaxed">
                 No Google Cloud Study Jams registration matched this QR link. Please
                 check the link from your confirmation email or register first.
               </p>
             </>
           )}
 
-          <div className="mt-8 pt-5 border-t border-cyan/20 flex flex-wrap items-center justify-center gap-4">
-            <a href="/" className="btn-arcade">
+          <div className="mt-4 pt-3.5 border-t border-cyan/20 flex flex-wrap items-center justify-center gap-4">
+            <a href="/" className="btn-arcade text-xs py-2.5 px-5">
               ◀ BACK TO LOBBY
             </a>
             {!participant.found && (
-              <a href="/register" className="btn-ghost-neon">
+              <a href="/register" className="btn-ghost-neon text-xs py-2.5 px-5">
                 REGISTER NOW
               </a>
             )}
@@ -184,7 +195,7 @@ function TestingPage() {
         </section>
       </main>
 
-      <footer className="relative z-10 py-4 text-center font-pixel text-[0.52rem] uppercase tracking-widest text-muted-foreground/70">
+      <footer className="relative z-10 shrink-0 py-1.5 text-center font-pixel text-[0.46rem] uppercase tracking-widest text-muted-foreground/60">
         GOOGLE CLOUD STUDY JAMS · GDG ON CAMPUS IARE
       </footer>
     </div>

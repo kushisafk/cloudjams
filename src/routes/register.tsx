@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { type FormEvent, useEffect, useState } from "react";
 import { GlowMark, Hud, PixelCloud } from "@/components/jams/Pixel";
 import { EVENT, REGISTRATION_OPEN } from "@/config/event";
-import { submitRegistration } from "@/lib/registration.server";
 
 export const Route = createFileRoute("/register")({
   head: () => ({
@@ -160,7 +159,15 @@ function RegisterPage() {
 
     setSubmitting(true);
     try {
-      const result = await submitRegistration({ data: form });
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+
+      const result = await response.json();
       if (result.ok) {
         if (result.playerCode) {
           setPlayerCode(result.playerCode);
@@ -188,7 +195,7 @@ function RegisterPage() {
         return;
       }
 
-      setErrors({ consent: result.message });
+      setErrors({ consent: result.message || "Registration could not be completed." });
     } catch {
       setErrors({
         consent: "Could not complete registration right now. Please try again.",
@@ -258,7 +265,7 @@ function RegisterPage() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  });
+  }, [screen, selectedIdx]);
 
   return (
     <div className="relative min-h-screen md:h-screen md:overflow-hidden bg-void text-foreground flex flex-col justify-between overflow-x-hidden">
@@ -978,6 +985,21 @@ function RegisterPage() {
                 We&apos;ll send your Google Cloud Skills Boost onboarding instructions and
                 kickoff schedule to <span className="text-cyan">{form.collegeEmail}</span>.
               </p>
+
+              {/* Spam / Junk Notice */}
+              <div className="mx-auto mt-4 max-w-md border border-magenta/40 bg-void/80 p-3.5 text-left">
+                <div className="flex items-center gap-2 font-pixel text-[0.52rem] text-magenta">
+                  <span>⚠</span>
+                  <span>CHECK YOUR SPAM / PROMOTIONS FOLDER</span>
+                </div>
+                <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
+                  Your confirmation email with your QR code pass was just sent to{" "}
+                  <span className="text-foreground font-medium">{form.collegeEmail}</span>.
+                  Automated emails can sometimes land in <strong className="text-foreground">Spam</strong> or{" "}
+                  <strong className="text-foreground">Promotions</strong>—please check there and click
+                  &ldquo;Report not spam&rdquo; so you don&apos;t miss kickoff updates.
+                </p>
+              </div>
 
               <div className="mt-7 flex flex-wrap items-center justify-center gap-4">
                 <a href="/" className="btn-arcade">

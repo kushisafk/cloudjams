@@ -411,7 +411,7 @@ export async function processRegistrationSubmission(
     };
   }
 
-  // Step 2: Generate QR code in memory and send confirmation email via Resend
+  // Step 2: Generate QR code in memory and send confirmation email via Gmail API
   const attemptNumber = registration.emailAttempts + 1;
   const testingUrl = buildTestingUrl(registration.qrToken);
 
@@ -518,52 +518,58 @@ export interface VerifiedParticipantDetails {
   registeredAt?: string;
 }
 
-export const getRegistrationByQrToken = createServerFn({ method: "GET" })
-  .validator((token: string | undefined) => (typeof token === "string" ? token.trim() : ""))
-  .handler(async ({ data: token }): Promise<VerifiedParticipantDetails> => {
-    if (!token || !/^[A-Za-z0-9_-]{8,64}$/.test(token)) {
+export async function lookupParticipantByQrToken(
+  token: string | undefined,
+): Promise<VerifiedParticipantDetails> {
+  if (!token || typeof token !== "string" || !/^[A-Za-z0-9_-]{8,64}$/.test(token.trim())) {
+    return { found: false };
+  }
+
+  const cleanToken = token.trim();
+  try {
+    const record = await prisma.registration.findUnique({
+      where: { qrToken: cleanToken },
+      select: {
+        playerCode: true,
+        fullName: true,
+        rollNumber: true,
+        collegeEmail: true,
+        collegeName: true,
+        yearOfStudy: true,
+        branch: true,
+        experienceLevel: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+
+    if (!record) {
       return { found: false };
     }
 
-    try {
-      const record = await prisma.registration.findUnique({
-        where: { qrToken: token },
-        select: {
-          playerCode: true,
-          fullName: true,
-          rollNumber: true,
-          collegeEmail: true,
-          collegeName: true,
-          yearOfStudy: true,
-          branch: true,
-          experienceLevel: true,
-          status: true,
-          createdAt: true,
-        },
-      });
+    return {
+      found: true,
+      playerCode: record.playerCode,
+      fullName: record.fullName,
+      rollNumber: record.rollNumber || "—",
+      collegeEmail: record.collegeEmail,
+      collegeName: record.collegeName,
+      yearOfStudy: record.yearOfStudy,
+      branch: record.branch,
+      experienceLevel: record.experienceLevel,
+      status: record.status,
+      registeredAt: record.createdAt.toISOString(),
+    };
+  } catch (err) {
+    console.error("[qr-lookup] Error fetching participant by qrToken:", err);
+    return { found: false };
+  }
+}
 
-      if (!record) {
-        return { found: false };
-      }
-
-      return {
-        found: true,
-        playerCode: record.playerCode,
-        fullName: record.fullName,
-        rollNumber: record.rollNumber || "—",
-        collegeEmail: record.collegeEmail,
-        collegeName: record.collegeName,
-        yearOfStudy: record.yearOfStudy,
-        branch: record.branch,
-        experienceLevel: record.experienceLevel,
-        status: record.status,
-        registeredAt: record.createdAt.toISOString(),
-      };
-    } catch (err) {
-      console.error("[qr-lookup] Error fetching participant by qrToken:", err);
-      return { found: false };
-    }
-  });
+export const getRegistrationByQrToken = async (arg: { data?: string } | string) => {
+  const token = typeof arg === "string" ? arg : arg?.data;
+  return await lookupParticipantByQrToken(token);
+};
 
 export const submitRegistration = createServerFn({ method: "POST" })
   .validator((input: unknown) => input)
