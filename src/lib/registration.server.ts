@@ -71,6 +71,16 @@ export const registrationSchema = z.object({
     .trim()
     .min(2, "Full name must be at least 2 characters")
     .max(120, "Full name cannot exceed 120 characters"),
+  rollNumber: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .min(4, "Please enter your roll number (e.g. 25951A05F3)")
+    .max(24, "Roll number cannot exceed 24 characters")
+    .regex(
+      /^[A-Z0-9-]+$/,
+      "Roll number can only contain letters, numbers, and hyphens (e.g. 25951A05F3)",
+    ),
   collegeEmail: z
     .string()
     .trim()
@@ -341,6 +351,7 @@ export async function processRegistrationSubmission(
             playerCode,
             qrToken,
             fullName: data.fullName,
+            rollNumber: data.rollNumber,
             collegeEmail: data.collegeEmail,
             collegeName: data.collegeName,
             yearOfStudy: data.yearOfStudy,
@@ -435,6 +446,7 @@ export async function processRegistrationSubmission(
     registrationId: registration.id,
     playerCode: registration.playerCode,
     fullName: registration.fullName,
+    rollNumber: registration.rollNumber,
     email: registration.collegeEmail,
     collegeName: registration.collegeName,
     yearOfStudy: registration.yearOfStudy,
@@ -491,6 +503,67 @@ export async function processRegistrationSubmission(
       "Registration confirmed! Your participant pass and QR code have been sent to your email.",
   };
 }
+
+export interface VerifiedParticipantDetails {
+  found: boolean;
+  playerCode?: string;
+  fullName?: string;
+  rollNumber?: string;
+  collegeEmail?: string;
+  collegeName?: string;
+  yearOfStudy?: string;
+  branch?: string;
+  experienceLevel?: string | null;
+  status?: string;
+  registeredAt?: string;
+}
+
+export const getRegistrationByQrToken = createServerFn({ method: "GET" })
+  .validator((token: string | undefined) => (typeof token === "string" ? token.trim() : ""))
+  .handler(async ({ data: token }): Promise<VerifiedParticipantDetails> => {
+    if (!token || !/^[A-Za-z0-9_-]{8,64}$/.test(token)) {
+      return { found: false };
+    }
+
+    try {
+      const record = await prisma.registration.findUnique({
+        where: { qrToken: token },
+        select: {
+          playerCode: true,
+          fullName: true,
+          rollNumber: true,
+          collegeEmail: true,
+          collegeName: true,
+          yearOfStudy: true,
+          branch: true,
+          experienceLevel: true,
+          status: true,
+          createdAt: true,
+        },
+      });
+
+      if (!record) {
+        return { found: false };
+      }
+
+      return {
+        found: true,
+        playerCode: record.playerCode,
+        fullName: record.fullName,
+        rollNumber: record.rollNumber || "—",
+        collegeEmail: record.collegeEmail,
+        collegeName: record.collegeName,
+        yearOfStudy: record.yearOfStudy,
+        branch: record.branch,
+        experienceLevel: record.experienceLevel,
+        status: record.status,
+        registeredAt: record.createdAt.toISOString(),
+      };
+    } catch (err) {
+      console.error("[qr-lookup] Error fetching participant by qrToken:", err);
+      return { found: false };
+    }
+  });
 
 export const submitRegistration = createServerFn({ method: "POST" })
   .validator((input: unknown) => input)

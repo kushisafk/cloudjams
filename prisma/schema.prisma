@@ -24,6 +24,7 @@ model Registration {
   playerCode         String              @unique
   qrToken            String              @unique @default(cuid())
   fullName           String
+  rollNumber         String              @default("")
   collegeEmail       String              @unique
   collegeName        String
   yearOfStudy        String

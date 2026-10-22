@@ -1,22 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GlowMark, Hud, PixelCloud } from "@/components/jams/Pixel";
+import { getRegistrationByQrToken } from "@/lib/registration.server";
 
 export const Route = createFileRoute("/testing")({
   validateSearch: (search: Record<string, unknown>) => ({
     ref: typeof search["ref"] === "string" ? search["ref"] : undefined,
   }),
+  loaderDeps: ({ search: { ref } }) => ({ ref }),
+  loader: async ({ deps: { ref } }) => {
+    return await getRegistrationByQrToken({ data: ref });
+  },
   head: () => ({
     meta: [
-      { title: "QR Verification · Google Cloud Study Jams · GDG on Campus IARE" },
+      { title: "Participant Pass · Google Cloud Study Jams · GDG on Campus IARE" },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),
   component: TestingPage,
 });
 
+const EXPERIENCE_LABELS: Record<string, string> = {
+  beginner: "Beginner",
+  some: "Some Experience",
+  experienced: "Experienced",
+};
+
 function TestingPage() {
-  const { ref } = Route.useSearch();
-  const hasValidTokenFormat = Boolean(ref && /^[A-Za-z0-9_-]{16,64}$/.test(ref));
+  const participant = Route.useLoaderData();
 
   return (
     <div className="relative min-h-screen bg-void text-foreground flex flex-col justify-between overflow-x-hidden">
@@ -43,7 +53,9 @@ function TestingPage() {
             </span>
           </a>
 
-          <Hud tone="cyan">QR CHECKPOINT</Hud>
+          <Hud tone={participant.found ? "cyan" : "magenta"}>
+            {participant.found ? "PASS VERIFIED" : "UNVERIFIED QR"}
+          </Hud>
         </div>
       </header>
 
@@ -54,28 +66,117 @@ function TestingPage() {
             <PixelCloud className="w-20 text-cyan drop-shadow-[0_0_12px_var(--cyan)] animate-floaty" />
           </div>
 
-          <Hud tone="cyan">★ SCAN VERIFIED</Hud>
+          {participant.found ? (
+            <>
+              <Hud tone="cyan">★ VERIFIED PARTICIPANT</Hud>
 
-          <h1 className="mt-5 font-display text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">
-            TESTING — QR code successfully scanned.
-          </h1>
+              <h1 className="mt-4 font-display text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">
+                {participant.fullName}
+              </h1>
 
-          <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-md mx-auto leading-relaxed">
-            Your Google Cloud Study Jams participant pass QR link is active and
-            working properly.
-          </p>
+              {participant.rollNumber && participant.rollNumber !== "—" && (
+                <p className="mt-1 font-mono text-sm sm:text-base text-cyan">
+                  ROLL NO: {participant.rollNumber}
+                </p>
+              )}
 
-          {hasValidTokenFormat && (
-            <div className="mt-5 inline-flex items-center gap-2 border border-cyan/30 bg-void px-3.5 py-2 font-mono text-xs text-cyan">
-              <span>TOKEN STATUS:</span>
-              <span className="text-magenta">RECOGNIZED</span>
-            </div>
+              {/* Student Details Pass Card */}
+              <div className="mx-auto mt-6 max-w-md border border-cyan/40 bg-void p-5 text-left text-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-cyan/20 pb-2.5 font-pixel text-[0.55rem] text-cyan">
+                  <span>PLAYER PASS</span>
+                  <span className="text-magenta">#{participant.playerCode}</span>
+                </div>
+
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Status</span>
+                  <span className="font-mono text-xs uppercase text-cyan font-semibold">
+                    ● {participant.status}
+                  </span>
+                </div>
+
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Full Name</span>
+                  <span className="font-medium text-foreground text-right">
+                    {participant.fullName}
+                  </span>
+                </div>
+
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Roll Number</span>
+                  <span className="font-mono text-cyan text-right font-semibold">
+                    {participant.rollNumber}
+                  </span>
+                </div>
+
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Email</span>
+                  <span className="text-foreground text-right break-all">
+                    {participant.collegeEmail}
+                  </span>
+                </div>
+
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">College</span>
+                  <span className="text-foreground text-right">
+                    {participant.collegeName}
+                  </span>
+                </div>
+
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Branch &amp; Year</span>
+                  <span className="text-foreground text-right">
+                    {participant.branch} · {participant.yearOfStudy}
+                  </span>
+                </div>
+
+                {participant.experienceLevel && (
+                  <div className="flex justify-between gap-4">
+                    <span className="text-muted-foreground">Cloud Track</span>
+                    <span className="text-foreground text-right">
+                      {EXPERIENCE_LABELS[participant.experienceLevel] ??
+                        participant.experienceLevel}
+                    </span>
+                  </div>
+                )}
+
+                {participant.registeredAt && (
+                  <div className="flex justify-between gap-4 border-t border-cyan/15 pt-2.5 text-xs">
+                    <span className="text-muted-foreground">Registered On</span>
+                    <span className="font-mono text-muted-foreground text-right">
+                      {new Date(participant.registeredAt).toLocaleDateString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <Hud tone="magenta">✕ PASS NOT FOUND</Hud>
+
+              <h1 className="mt-5 font-display text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">
+                INVALID OR UNRECOGNIZED QR CODE
+              </h1>
+
+              <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-md mx-auto leading-relaxed">
+                No Google Cloud Study Jams registration matched this QR link. Please
+                check the link from your confirmation email or register first.
+              </p>
+            </>
           )}
 
           <div className="mt-8 pt-5 border-t border-cyan/20 flex flex-wrap items-center justify-center gap-4">
             <a href="/" className="btn-arcade">
               ◀ BACK TO LOBBY
             </a>
+            {!participant.found && (
+              <a href="/register" className="btn-ghost-neon">
+                REGISTER NOW
+              </a>
+            )}
           </div>
         </section>
       </main>

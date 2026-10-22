@@ -39,6 +39,7 @@ describe("Study Jams Registration Backend & QR System", () => {
       registrationId: "reg_test_123",
       playerCode: "IARE-9999",
       fullName: "Aarav Sharma",
+      rollNumber: "25951A05F3",
       email: TEST_EMAIL,
       collegeName: "Institute of Aeronautical Engineering (IARE)",
       yearOfStudy: "2nd Year",
@@ -50,6 +51,7 @@ describe("Study Jams Registration Backend & QR System", () => {
 
     expect(subject).toContain("IARE-9999");
     expect(html).toContain("Aarav Sharma");
+    expect(html).toContain("25951A05F3");
     expect(html).toContain("GOOGLE CLOUD");
     expect(html).toContain("STUDY JAMS");
     expect(html).toContain("GDG on Campus at IARE");
@@ -79,6 +81,7 @@ describe("Study Jams Registration Backend & QR System", () => {
     const typoEmail = await processRegistrationSubmission(
       {
         fullName: "Test Student",
+        rollNumber: "25951A05F3",
         collegeEmail: "student@gmial.com",
         collegeName: "IARE",
         yearOfStudy: "2nd Year",
@@ -94,6 +97,7 @@ describe("Study Jams Registration Backend & QR System", () => {
     const disposableEmail = await processRegistrationSubmission(
       {
         fullName: "Test Student",
+        rollNumber: "25951A05F3",
         collegeEmail: "student@mailinator.com",
         collegeName: "IARE",
         yearOfStudy: "2nd Year",
@@ -110,6 +114,7 @@ describe("Study Jams Registration Backend & QR System", () => {
     const outcome = await processRegistrationSubmission(
       {
         fullName: "Aarav Sharma",
+        rollNumber: "25951a05f3",
         collegeEmail: `  ${TEST_EMAIL.toUpperCase()}  `,
         collegeName: "Institute of Aeronautical Engineering (IARE)",
         yearOfStudy: "2nd Year",
@@ -129,6 +134,7 @@ describe("Study Jams Registration Backend & QR System", () => {
     });
     expect(saved).not.toBeNull();
     expect(saved?.fullName).toBe("Aarav Sharma");
+    expect(saved?.rollNumber).toBe("25951A05F3");
     expect(saved?.playerCode).toMatch(/^IARE-\d{4}$/);
     expect(saved?.qrToken).toMatch(/^[A-Za-z0-9_-]{32}$/);
     expect(saved?.status).toBe("REGISTERED");
@@ -150,6 +156,7 @@ describe("Study Jams Registration Backend & QR System", () => {
     const duplicateAttempt = await processRegistrationSubmission(
       {
         fullName: "Aarav Sharma",
+        rollNumber: "25951A05F3",
         collegeEmail: TEST_EMAIL,
         collegeName: "Institute of Aeronautical Engineering (IARE)",
         yearOfStudy: "2nd Year",

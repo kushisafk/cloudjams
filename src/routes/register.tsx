@@ -24,6 +24,7 @@ type ExperienceLevel = "beginner" | "some" | "experienced" | "";
 
 interface FormData {
   fullName: string;
+  rollNumber: string;
   collegeEmail: string;
   collegeName: string;
   yearOfStudy: string;
@@ -37,6 +38,7 @@ interface FormData {
 
 const INITIAL_FORM: FormData = {
   fullName: "",
+  rollNumber: "",
   collegeEmail: "",
   collegeName: "Institute of Aeronautical Engineering (IARE)",
   yearOfStudy: "",
@@ -72,6 +74,7 @@ function RegisterPage() {
 
   const isStudentInfoComplete = Boolean(
     form.fullName.trim() &&
+      form.rollNumber.trim() &&
       form.collegeEmail.trim() &&
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.collegeEmail.trim()) &&
       form.collegeName.trim() &&
@@ -86,6 +89,11 @@ function RegisterPage() {
   const validateStudentInfo = () => {
     const nextErrors: Partial<Record<keyof FormData, string>> = {};
     if (!form.fullName.trim()) nextErrors.fullName = "Please enter your full name";
+    if (!form.rollNumber.trim()) {
+      nextErrors.rollNumber = "Please enter your roll number (e.g. 25951A05F3)";
+    } else if (!/^[A-Za-z0-9-]{4,24}$/.test(form.rollNumber.trim())) {
+      nextErrors.rollNumber = "Enter a valid roll number (e.g. 25951A05F3)";
+    }
 
     const email = form.collegeEmail.trim().toLowerCase();
     const typoDomains: Record<string, string> = {
@@ -163,6 +171,7 @@ function RegisterPage() {
 
       const studentFields: Array<keyof FormData> = [
         "fullName",
+        "rollNumber",
         "collegeEmail",
         "collegeName",
         "yearOfStudy",
@@ -487,6 +496,31 @@ function RegisterPage() {
                         )}
                       </div>
 
+                      {/* Roll Number */}
+                      <div>
+                        <label
+                          htmlFor="rollNumber"
+                          className="mb-1.5 block text-sm font-medium text-foreground"
+                        >
+                          Roll number <span className="text-magenta">*</span>
+                        </label>
+                        <input
+                          id="rollNumber"
+                          type="text"
+                          value={form.rollNumber}
+                          onChange={(e) =>
+                            updateField("rollNumber", e.target.value.toUpperCase())
+                          }
+                          placeholder="e.g. 25951A05F3"
+                          className="h-11 w-full border border-cyan/35 bg-void px-3.5 font-mono text-sm uppercase text-foreground placeholder:font-sans placeholder:normal-case placeholder:text-muted-foreground/50 focus:border-cyan focus:outline-none"
+                        />
+                        {errors.rollNumber && (
+                          <p className="mt-1 text-xs text-magenta">{errors.rollNumber}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
                       {/* Email Address */}
                       <div>
                         <label
@@ -507,27 +541,27 @@ function RegisterPage() {
                           <p className="mt-1 text-xs text-magenta">{errors.collegeEmail}</p>
                         )}
                       </div>
-                    </div>
 
-                    {/* College Name */}
-                    <div>
-                      <label
-                        htmlFor="collegeName"
-                        className="mb-1.5 block text-sm font-medium text-foreground"
-                      >
-                        College name <span className="text-magenta">*</span>
-                      </label>
-                      <input
-                        id="collegeName"
-                        type="text"
-                        value={form.collegeName}
-                        onChange={(e) => updateField("collegeName", e.target.value)}
-                        placeholder="Institute of Aeronautical Engineering (IARE)"
-                        className="h-11 w-full border border-cyan/35 bg-void px-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-cyan focus:outline-none"
-                      />
-                      {errors.collegeName && (
-                        <p className="mt-1 text-xs text-magenta">{errors.collegeName}</p>
-                      )}
+                      {/* College Name */}
+                      <div>
+                        <label
+                          htmlFor="collegeName"
+                          className="mb-1.5 block text-sm font-medium text-foreground"
+                        >
+                          College name <span className="text-magenta">*</span>
+                        </label>
+                        <input
+                          id="collegeName"
+                          type="text"
+                          value={form.collegeName}
+                          onChange={(e) => updateField("collegeName", e.target.value)}
+                          placeholder="Institute of Aeronautical Engineering (IARE)"
+                          className="h-11 w-full border border-cyan/35 bg-void px-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-cyan focus:outline-none"
+                        />
+                        {errors.collegeName && (
+                          <p className="mt-1 text-xs text-magenta">{errors.collegeName}</p>
+                        )}
+                      </div>
                     </div>
 
                     {/* Year of Study */}
@@ -813,7 +847,10 @@ function RegisterPage() {
                     {isStudentInfoComplete ? (
                       <div>
                         <div className="text-base font-semibold text-foreground">
-                          {form.fullName}
+                          {form.fullName}{" "}
+                          <span className="font-mono text-xs text-cyan">
+                            ({form.rollNumber})
+                          </span>
                         </div>
                         <div className="mt-0.5 text-xs sm:text-sm text-muted-foreground">
                           {form.collegeEmail} · {form.branch} ({form.yearOfStudy})
@@ -919,6 +956,10 @@ function RegisterPage() {
                 <div className="flex justify-between gap-4">
                   <span className="text-muted-foreground">Player</span>
                   <span className="font-medium text-foreground text-right">{form.fullName}</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Roll Number</span>
+                  <span className="font-mono text-cyan text-right">{form.rollNumber}</span>
                 </div>
                 <div className="flex justify-between gap-4">
                   <span className="text-muted-foreground">Email</span>

@@ -5,6 +5,7 @@ export interface SendConfirmationEmailInput {
   registrationId: string;
   playerCode: string;
   fullName: string;
+  rollNumber: string;
   email: string;
   collegeName: string;
   yearOfStudy: string;
@@ -41,6 +42,7 @@ export function buildConfirmationEmailContent(input: SendConfirmationEmailInput)
   text: string;
 } {
   const safeName = escapeHtml(input.fullName);
+  const safeRollNumber = escapeHtml(input.rollNumber);
   const safePlayerCode = escapeHtml(input.playerCode);
   const safeCollege = escapeHtml(input.collegeName);
   const safeBranch = escapeHtml(input.branch);
@@ -123,6 +125,10 @@ export function buildConfirmationEmailContent(input: SendConfirmationEmailInput)
                     <td style="padding: 10px 0 6px 0; color: #f3f4f6; font-size: 13px; text-align: right; font-weight: 600;">${safeName}</td>
                   </tr>
                   <tr>
+                    <td style="padding: 6px 0; color: #9ca3af; font-size: 13px;">Roll Number</td>
+                    <td style="padding: 6px 0; color: #00e5ff; font-size: 13px; text-align: right; font-family: monospace; font-weight: 600;">${safeRollNumber}</td>
+                  </tr>
+                  <tr>
                     <td style="padding: 6px 0; color: #9ca3af; font-size: 13px;">College</td>
                     <td style="padding: 6px 0; color: #f3f4f6; font-size: 13px; text-align: right;">${safeCollege}</td>
                   </tr>
@@ -189,6 +195,7 @@ export function buildConfirmationEmailContent(input: SendConfirmationEmailInput)
     `PLAYER PASS DETAILS`,
     `- Registration ID: #${input.playerCode}`,
     `- Name: ${input.fullName}`,
+    `- Roll Number: ${input.rollNumber}`,
     `- College: ${input.collegeName}`,
     `- Branch & Year: ${input.branch} · ${input.yearOfStudy}`,
     ...(confirmedTextLines ? [confirmedTextLines] : []),
@@ -211,6 +218,13 @@ export function buildConfirmationEmailContent(input: SendConfirmationEmailInput)
 export async function sendRegistrationConfirmationEmail(
   input: SendConfirmationEmailInput,
 ): Promise<SendConfirmationEmailResult> {
+  if (!process.env["RESEND_API_KEY"] && typeof process.loadEnvFile === "function") {
+    try {
+      process.loadEnvFile();
+    } catch {
+      // Ignore when .env is absent in serverless production
+    }
+  }
   const apiKey = process.env["RESEND_API_KEY"]?.trim();
   const emailFrom = process.env["EMAIL_FROM"]?.trim();
 

@@ -1,5 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 
+if (!process.env["DATABASE_URL"] && typeof process.loadEnvFile === "function") {
+  try {
+    process.loadEnvFile();
+  } catch {
+    // Ignore if .env does not exist in production serverless environment
+  }
+}
+
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
