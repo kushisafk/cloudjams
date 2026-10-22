@@ -10,6 +10,8 @@ export const REGISTRATION_OPEN = true;
 
 export const EVENT = {
   name: "Google Cloud Study Jams",
+  learning: "Google Skills hands-on labs",
+  access: "Google Skills credits for participants",
   organizer: "GDG on Campus at IARE",
   date: "[Add event date]",
   venue: "[Add venue / online mode]",

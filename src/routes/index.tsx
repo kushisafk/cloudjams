@@ -48,7 +48,7 @@ function Header() {
         <a href="#top" className="flex items-center gap-3.5" aria-label="Cloud Quest home">
           <GlowMark className="size-11 sm:size-12" />
           <span className="font-pixel text-[0.72rem] leading-snug tracking-wide sm:text-[0.78rem]">
-            STUDY JAMS<span className="mt-0.5 block text-[0.58rem] text-muted-foreground sm:text-[0.62rem]">GDG · IARE</span>
+            Google Cloud Study Jams<span className="mt-0.5 block text-[0.58rem] text-muted-foreground sm:text-[0.62rem]">GDG · IARE</span>
           </span>
         </a>
         <nav className="hidden items-center gap-7 md:flex" aria-label="Primary">
@@ -614,9 +614,9 @@ function Missions() {
 
 function Status() {
   const rows = [
-    ["DATE", EVENT.date],
-    ["MODE / VENUE", EVENT.venue],
-    ["REG. DEADLINE", EVENT.deadline],
+    ["PROGRAM", EVENT.name],
+    ["LEARNING", EVENT.learning],
+    ["ACCESS", EVENT.access],
     ["HOST", EVENT.organizer],
   ];
   return (
@@ -638,7 +638,7 @@ function Status() {
       </div>
 
       <div className="relative mx-auto grid w-full max-w-7xl gap-12 lg:grid-cols-[1fr_1.2fr] lg:items-center">
-        <SectionHead tag="// CHECKPOINT 04 · SYSTEM STATUS" title={<>Event <span className="text-violet glow-violet">info</span></>} sub="Details marked pending will light up once organizers confirm them." />
+        <SectionHead tag="// CHECKPOINT 04 · SYSTEM STATUS" title={<>Event <span className="text-violet glow-violet">info</span></>} sub="Core program details for this edition of Google Cloud Study Jams." />
         <Reveal>
           <Panel title="status_panel.sys">
             <dl className="divide-y divide-cyan/15 font-mono">

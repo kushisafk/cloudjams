@@ -284,8 +284,8 @@ function RegisterPage() {
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-5">
           <a href="/" className="flex items-center gap-3" aria-label="Back to Cloud Quest home">
             <GlowMark className="size-9 sm:size-10" />
-            <span className="font-pixel text-[0.62rem] leading-snug tracking-wide sm:text-[0.68rem]">
-              STUDY JAMS
+            <span className="font-pixel text-[0.58rem] leading-snug tracking-wide sm:text-[0.65rem]">
+              Google Cloud Study Jams
               <span className="mt-0.5 block text-[0.5rem] text-muted-foreground sm:text-[0.55rem]">
                 GDG · IARE
               </span>

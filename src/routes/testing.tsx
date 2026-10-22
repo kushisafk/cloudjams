@@ -45,8 +45,8 @@ function TestingPage() {
         <div className="mx-auto flex h-[4.5rem] max-w-5xl items-center justify-between px-5">
           <a href="/" className="flex items-center gap-3.5" aria-label="Cloud Quest home">
             <GlowMark className="size-10 sm:size-11" />
-            <span className="font-pixel text-[0.65rem] leading-snug tracking-wide sm:text-[0.72rem]">
-              STUDY JAMS
+            <span className="font-pixel text-[0.6rem] leading-snug tracking-wide sm:text-[0.68rem]">
+              Google Cloud Study Jams
               <span className="mt-0.5 block text-[0.52rem] text-muted-foreground sm:text-[0.58rem]">
                 GDG · IARE
               </span>
