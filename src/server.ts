@@ -2,7 +2,6 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
-import { processRegistrationSubmission } from "./lib/registration.server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -76,6 +75,7 @@ async function handleRegisterApiRequest(request: Request): Promise<Response> {
   }
 
   const clientKey = extractClientIp(request);
+  const { processRegistrationSubmission } = await import("./lib/registration.server");
   const outcome = await processRegistrationSubmission(parsedBody, clientKey);
 
   return Response.json(outcome, { status: outcome.statusCode });
