@@ -306,11 +306,17 @@ export function buildRawMimeMessage(
   const htmlBase64Block = toMimeBase64Block(html);
 
   const recipientEmail = input.email.replace(/[\r\n]+/g, "").trim();
+  const currentDate = new Date().toUTCString();
+  const messageIdHeader = `<studyjams.${safeIdToken}.${Date.now()}@gmail.com>`;
 
   const lines: string[] = [
     `From: ${formatFromHeader(input.fromEmail)}`,
     `To: ${recipientEmail}`,
     `Subject: ${encodeMimeHeaderText(subject)}`,
+    `Date: ${currentDate}`,
+    `Message-ID: ${messageIdHeader}`,
+    `Auto-Submitted: auto-generated`,
+    `X-Auto-Response-Suppress: All`,
     `MIME-Version: 1.0`,
     `Content-Type: multipart/mixed; boundary="${mixedBoundary}"`,
     ``,
