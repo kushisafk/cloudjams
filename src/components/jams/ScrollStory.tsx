@@ -4,7 +4,7 @@ import { Hud, Panel, PixelCloud } from "./Pixel";
 const CHAPTERS = [
   { key: "BOOT SEQUENCE", tone: "cyan" as const, title: "Boot sequence", body: "Power on. Learn the vocabulary, open the console, and get your bearings in the cloud." },
   { key: "ENTER THE CLOUD", tone: "violet" as const, title: "Enter the cloud", body: "Work through guided hands-on labs and deploy real services, step by step." },
-  { key: "COMPLETE THE QUEST", tone: "magenta" as const, title: "Complete the quest", body: "Finish your path, share your progress, and keep leveling up with the community." },
+  { key: "COMPLETE THE QUEST", tone: "magenta" as const, title: "Complete the quest", body: "Finish your labs to earn Google Cloud Skill Badges and unlock your certificate (requirements shared later)." },
 ];
 
 const BOOT = ["POST CHECK ........ OK", "MOUNT /labs ....... OK", "LINK gdg-iare ..... OK", "LOAD cloud.sys .... OK", "PLAYER 01 DETECTED", "> READY_"];

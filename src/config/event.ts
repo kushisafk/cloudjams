@@ -26,10 +26,10 @@ export const TRACKS = [
 ] as const;
 
 export const STEPS = [
-  { title: "Register", body: "Sign up through the official registration link shared by organizers." },
+  { title: "Register", body: "Sign up through the official registration link before 10th Nov 2026." },
   { title: "Follow the learning path", body: "Get access to the path for this edition and work through it at your pace." },
   { title: "Complete hands-on labs", body: "Work in real cloud environments through guided, step-by-step labs." },
-  { title: "Share progress", body: "Track your progress and share it with the community as instructed." },
+  { title: "Earn badges & certificate", body: "Earn Google Cloud Skill Badges on completing labs and unlock your certificate (requirements shared later)." },
 ];
 
 export const FAQS = [
@@ -37,7 +37,7 @@ export const FAQS = [
   { q: "Is prior experience required?", a: "No. Study Jams are designed as guided learning, so beginners can follow along. Some familiarity with basic computing helps." },
   { q: "What do I need?", a: "A laptop, a stable internet connection, and a Google account. Any additional requirements will be shared by organizers." },
   { q: "How do labs work?", a: "Labs give you temporary access to real cloud environments with step-by-step instructions, so you can practice without setting up your own billing." },
-  { q: "Are certificates or rewards available?", a: "It depends on the current edition and organizer confirmation. Please don't assume any reward until it's officially announced." },
+  { q: "Are certificates or rewards available?", a: "Yes! You will earn Google Cloud Skill Badges on completing hands-on labs, and a certificate will be provided (specific completion requirements for the certificate will be shared later)." },
 ];
 
 export const SOCIALS = [
