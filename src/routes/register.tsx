@@ -986,18 +986,20 @@ function RegisterPage() {
                 kickoff schedule to <span className="text-cyan">{form.collegeEmail}</span>.
               </p>
 
-              {/* Spam / Junk Notice */}
-              <div className="mx-auto mt-4 max-w-md border border-magenta/40 bg-void/80 p-3.5 text-left">
-                <div className="flex items-center gap-2 font-pixel text-[0.52rem] text-magenta">
-                  <span>⚠</span>
-                  <span>CHECK YOUR SPAM / PROMOTIONS FOLDER</span>
+              {/* Noticeable Spam Notice */}
+              <div className="mx-auto mt-4 max-w-md border-2 border-magenta bg-void/90 p-3.5 sm:p-4 text-left shadow-[0_0_24px_-4px_var(--magenta)]">
+                <div className="flex items-start gap-2.5 font-pixel text-[0.6rem] sm:text-[0.66rem] text-magenta leading-relaxed">
+                  <span className="text-base leading-none animate-blink shrink-0">⚠</span>
+                  <span className="font-bold tracking-wide">
+                    Check Spam folder if you don&apos;t get the mail in inbox
+                  </span>
                 </div>
-                <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
-                  Your confirmation email with your QR code pass was just sent to{" "}
-                  <span className="text-foreground font-medium">{form.collegeEmail}</span>.
+                <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
+                  Your confirmation email with your QR code pass was sent to{" "}
+                  <span className="text-cyan font-medium">{form.collegeEmail}</span>.
                   Automated emails can sometimes land in <strong className="text-foreground">Spam</strong> or{" "}
                   <strong className="text-foreground">Promotions</strong>—please check there and click
-                  &ldquo;Report not spam&rdquo; so you don&apos;t miss kickoff updates.
+                  &ldquo;Report not spam&rdquo; so the QR code loads and you don&apos;t miss event updates.
                 </p>
               </div>
 
